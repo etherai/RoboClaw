@@ -129,6 +129,7 @@
     clawdbot_config_dir: "{{ clawdbot_home }}/.clawdbot"
     clawdbot_install_mode: release  # or 'development'
     nodejs_version: "22.x"
+    skip_homebrew: true  # Skip Homebrew on Linux (not needed, saves 5-10 min)
 
   environment:
     TERM: xterm-256color
@@ -148,10 +149,9 @@
           🔍 Detected OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
           OS Family: {{ ansible_os_family }}
 
-    - name: Update apt cache and upgrade all packages (Debian/Ubuntu)
+    - name: Update apt cache only (skip slow dist-upgrade for speed)
       ansible.builtin.apt:
         update_cache: true
-        upgrade: dist
         cache_valid_time: 3600
       when: is_debian
 

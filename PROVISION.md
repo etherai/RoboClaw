@@ -123,8 +123,35 @@ cat > .env <<EOF
 HCLOUD_TOKEN=your-64-char-token-here
 EOF
 
-# 3. Run the playbook
+# 3. Run the playbook (fast mode is default)
 ./run-hetzner.sh
+
+# Or for full install with extras:
+./run-hetzner.sh full
+```
+
+### Install Modes
+
+**Fast Mode (DEFAULT) - ~2-3 minutes:**
+- Installs essentials: Docker, Node.js, Tailscale, UFW, Clawdbot
+- Skips: Homebrew, oh-my-zsh, extra debug tools
+- Perfect for production or quick testing
+
+**Full Mode - ~10-15 minutes:**
+- Everything in Fast mode PLUS:
+- oh-my-zsh (zsh framework)
+- 46 extra system tools (debugging, networking)
+- Git aliases and config
+- Vim configuration
+- System dist-upgrade
+- Perfect for development environments
+
+```bash
+# Fast (default)
+./run-hetzner.sh
+
+# Full
+./run-hetzner.sh full
 ```
 
 ### Connect to Server

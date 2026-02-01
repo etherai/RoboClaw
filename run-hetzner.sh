@@ -55,8 +55,15 @@ case "${1:-provision}" in
         echo "Running teardown playbook..."
         ansible-playbook hetzner-teardown.yml --tags delete "$@"
         ;;
-    provision|*)
-        echo "Running Ansible playbook..."
+    full)
+        shift
+        echo "Running FULL install with all extras (~10-15 minutes)..."
         ansible-playbook hetzner-finland.yml "$@"
+        ;;
+    provision|fast|*)
+        shift
+        echo "⚡ Running FAST install - essentials only (~2-3 minutes)..."
+        echo "For full install with oh-my-zsh and extras: ./run-hetzner.sh full"
+        ansible-playbook hetzner-finland-fast.yml "$@"
         ;;
 esac

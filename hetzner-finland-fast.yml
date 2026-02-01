@@ -1,0 +1,344 @@
+---
+- name: Create Hetzner Cloud instance in Finland (Helsinki)
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    hcloud_token: "{{ lookup('env', 'HCLOUD_TOKEN') }}"
+    server_name: "finland-instance"
+    server_type: "cax11"  # 2 vCPU, 4GB RAM, 40GB disk (~€3.29/month, ARM)
+    location: "hel1"     # Helsinki, Finland
+    image: "ubuntu-24.04"
+    ssh_key_name: "my-ssh-key"
+    ssh_public_key: "{{ lookup('env', 'SSH_PUBLIC_KEY') | default('', true) }}"
+
+  tasks:
+    - name: Fail if HCLOUD_TOKEN is not set
+      ansible.builtin.fail:
+        msg: "Please set HCLOUD_TOKEN environment variable with your Hetzner API token"
+      when: hcloud_token == ""
+
+    - name: Fail if SSH_PUBLIC_KEY is not set
+      ansible.builtin.fail:
+        msg: "Please set SSH_PUBLIC_KEY environment variable with your public key"
+      when: ssh_public_key == ""
+
+    - name: Create or update SSH key in Hetzner
+      hetzner.hcloud.ssh_key:
+        api_token: "{{ hcloud_token }}"
+        name: "{{ ssh_key_name }}"
+        public_key: "{{ ssh_public_key }}"
+        state: present
+      register: ssh_key
+
+    - name: Create Hetzner Cloud server in Helsinki
+      hetzner.hcloud.server:
+        api_token: "{{ hcloud_token }}"
+        name: "{{ server_name }}"
+        server_type: "{{ server_type }}"
+        image: "{{ image }}"
+        location: "{{ location }}"
+        ssh_keys:
+          - "{{ ssh_key_name }}"
+        state: present
+      register: server
+
+    - name: Display server information
+      ansible.builtin.debug:
+        msg: |
+          ✅ Server created successfully!
+
+          Name: {{ server.hcloud_server.name }}
+          IPv4: {{ server.hcloud_server.ipv4_address }}
+          Type: {{ server.hcloud_server.server_type }}
+          Location: {{ server.hcloud_server.location }} (Finland)
+
+    - name: Save server IP to file
+      ansible.builtin.copy:
+        content: "{{ server.hcloud_server.ipv4_address }}"
+        dest: "./finland-instance-ip.txt"
+        mode: '0644'
+
+    - name: Add server to in-memory inventory
+      ansible.builtin.add_host:
+        name: "{{ server.hcloud_server.ipv4_address }}"
+        groups: finland_vps
+        ansible_user: root
+        ansible_ssh_private_key_file: "./hetzner_key"
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+
+    - name: Wait for SSH to become available
+      ansible.builtin.wait_for:
+        host: "{{ server.hcloud_server.ipv4_address }}"
+        port: 22
+        delay: 5
+        timeout: 300
+        state: started
+
+- name: Fast Install Clawdbot (Essentials Only)
+  hosts: finland_vps
+  gather_facts: true
+  become: true
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    clawdbot_user: clawdbot
+    clawdbot_home: "/home/{{ clawdbot_user }}"
+    clawdbot_config_dir: "{{ clawdbot_home }}/.clawdbot"
+    nodejs_version: "22.x"
+
+  tasks:
+    - name: Display fast install mode
+      ansible.builtin.debug:
+        msg: |
+          ⚡ FAST INSTALL MODE ⚡
+
+          Installing essentials only:
+          ✅ Docker CE
+          ✅ Node.js 22 + pnpm
+          ✅ Tailscale VPN
+          ✅ UFW Firewall
+          ✅ Clawdbot
+
+          Skipping (for speed):
+          ⏭️  Homebrew
+          ⏭️  oh-my-zsh
+          ⏭️  46 extra system tools
+          ⏭️  Git aliases
+          ⏭️  dist-upgrade
+
+          Expected time: ~2-3 minutes (vs ~10-15 minutes)
+
+    - name: Update apt cache only (skip dist-upgrade)
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install minimal essential packages
+      ansible.builtin.apt:
+        name:
+          - curl
+          - wget
+          - git
+          - ca-certificates
+          - gnupg
+          - lsb-release
+        state: present
+
+    # Create clawdbot user
+    - name: Create clawdbot system user
+      ansible.builtin.user:
+        name: "{{ clawdbot_user }}"
+        comment: "Clawdbot system user"
+        shell: /bin/bash
+        create_home: true
+        home: "{{ clawdbot_home }}"
+
+    - name: Add clawdbot user to sudoers with NOPASSWD
+      ansible.builtin.copy:
+        content: "{{ clawdbot_user }} ALL=(ALL) NOPASSWD:ALL\n"
+        dest: "/etc/sudoers.d/{{ clawdbot_user }}"
+        mode: '0440'
+        validate: 'visudo -cf %s'
+
+    - name: Enable lingering for clawdbot user
+      ansible.builtin.command: loginctl enable-linger {{ clawdbot_user }}
+      changed_when: false
+
+    # Install Docker CE (fast - no extra config)
+    - name: Add Docker GPG key
+      ansible.builtin.shell:
+        cmd: |
+          install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+          chmod a+r /etc/apt/keyrings/docker.gpg
+        creates: /etc/apt/keyrings/docker.gpg
+
+    - name: Add Docker repository
+      ansible.builtin.shell:
+        cmd: |
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+        creates: /etc/apt/sources.list.d/docker.list
+
+    - name: Install Docker CE
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: true
+
+    - name: Add clawdbot user to docker group
+      ansible.builtin.user:
+        name: "{{ clawdbot_user }}"
+        groups: docker
+        append: true
+
+    - name: Start and enable Docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    # Install Tailscale (fast)
+    - name: Add Tailscale GPG key
+      ansible.builtin.shell:
+        cmd: |
+          curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/$(lsb_release -cs).noarmor.gpg | tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+        creates: /usr/share/keyrings/tailscale-archive-keyring.gpg
+
+    - name: Add Tailscale repository
+      ansible.builtin.shell:
+        cmd: |
+          echo "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/tailscale.list
+        creates: /etc/apt/sources.list.d/tailscale.list
+
+    - name: Install Tailscale
+      ansible.builtin.apt:
+        name: tailscale
+        state: present
+        update_cache: true
+
+    # Configure UFW firewall (fast - minimal rules)
+    - name: Install UFW
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+
+    - name: Set UFW default policies
+      community.general.ufw:
+        direction: "{{ item.direction }}"
+        policy: "{{ item.policy }}"
+      loop:
+        - { direction: 'incoming', policy: 'deny' }
+        - { direction: 'outgoing', policy: 'allow' }
+
+    - name: Allow SSH on port 22
+      community.general.ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+    - name: Allow Tailscale UDP port 41641
+      community.general.ufw:
+        rule: allow
+        port: '41641'
+        proto: udp
+
+    - name: Enable UFW
+      community.general.ufw:
+        state: enabled
+
+    # Install Node.js 22 (fast)
+    - name: Add NodeSource GPG key
+      ansible.builtin.shell:
+        cmd: |
+          curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg
+        creates: /usr/share/keyrings/nodesource.gpg
+
+    - name: Add NodeSource repository
+      ansible.builtin.shell:
+        cmd: |
+          echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_{{ nodejs_version }} nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+        creates: /etc/apt/sources.list.d/nodesource.list
+
+    - name: Install Node.js
+      ansible.builtin.apt:
+        name: nodejs
+        state: present
+        update_cache: true
+
+    - name: Install pnpm globally
+      ansible.builtin.shell:
+        cmd: npm install -g pnpm
+        creates: /usr/bin/pnpm
+
+    # Install Clawdbot (fast - from npm, minimal config)
+    - name: Create Clawdbot directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ clawdbot_user }}"
+        group: "{{ clawdbot_user }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: "{{ clawdbot_config_dir }}", mode: '0755' }
+        - { path: "{{ clawdbot_config_dir }}/sessions", mode: '0755' }
+        - { path: "{{ clawdbot_config_dir }}/credentials", mode: '0700' }
+        - { path: "{{ clawdbot_config_dir }}/data", mode: '0755' }
+        - { path: "{{ clawdbot_config_dir }}/logs", mode: '0755' }
+        - { path: "{{ clawdbot_home }}/.local/share/pnpm", mode: '0755' }
+        - { path: "{{ clawdbot_home }}/.local/bin", mode: '0755' }
+
+    - name: Configure pnpm for clawdbot user
+      ansible.builtin.shell:
+        cmd: |
+          pnpm config set global-dir {{ clawdbot_home }}/.local/share/pnpm
+          pnpm config set global-bin-dir {{ clawdbot_home }}/.local/bin
+        executable: /bin/bash
+      become: true
+      become_user: "{{ clawdbot_user }}"
+      changed_when: true
+
+    - name: Install Clawdbot globally from npm
+      ansible.builtin.shell:
+        cmd: pnpm install -g clawdbot@latest
+        executable: /bin/bash
+      become: true
+      become_user: "{{ clawdbot_user }}"
+      environment:
+        HOME: "{{ clawdbot_home }}"
+        PNPM_HOME: "{{ clawdbot_home }}/.local/share/pnpm"
+        PATH: "{{ clawdbot_home }}/.local/bin:{{ ansible_env.PATH }}"
+      register: clawdbot_install
+
+    - name: Configure minimal .bashrc for clawdbot user
+      ansible.builtin.blockinfile:
+        path: "{{ clawdbot_home }}/.bashrc"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - Clawdbot"
+        block: |
+          # pnpm configuration
+          export PNPM_HOME="{{ clawdbot_home }}/.local/share/pnpm"
+          export PATH="{{ clawdbot_home }}/.local/bin:$PNPM_HOME:$PATH"
+        create: true
+        owner: "{{ clawdbot_user }}"
+        group: "{{ clawdbot_user }}"
+        mode: '0644'
+
+    - name: Verify clawdbot installation
+      ansible.builtin.command: su - clawdbot -c "clawdbot --version"
+      register: clawdbot_version
+      changed_when: false
+
+    - name: Display installation complete
+      ansible.builtin.debug:
+        msg: |
+          ⚡ FAST INSTALL COMPLETE! ⚡
+
+          Version: {{ clawdbot_version.stdout }}
+          Server: {{ ansible_default_ipv4.address }}
+          Install time: ~2-3 minutes (vs ~10-15 with full install)
+
+          ✅ Installed:
+          • Docker CE
+          • Node.js {{ nodejs_version }}
+          • pnpm (latest)
+          • Tailscale
+          • UFW Firewall
+          • Clawdbot {{ clawdbot_version.stdout }}
+
+          ⏭️  Skipped for speed:
+          • Homebrew (not needed on Linux)
+          • oh-my-zsh (use bash instead)
+          • 46 extra packages (debugging tools, etc.)
+          • Git aliases
+          • System dist-upgrade
+
+          Next steps:
+          1. SSH: ssh -i hetzner_key root@{{ ansible_default_ipv4.address }}
+          2. Switch user: sudo su - clawdbot
+          3. Onboard: clawdbot onboard --install-daemon
+
+          To install extras later:
+          apt install zsh tmux htop vim jq

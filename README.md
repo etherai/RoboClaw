@@ -23,21 +23,29 @@ ssh -i hetzner_key root@$(cat finland-instance-ip.txt)
 ### Provision New Server
 
 ```bash
-# Provision VPS in Helsinki with Clawdbot
+# Fast install (DEFAULT) - essentials only (~2-3 minutes)
 ./run-hetzner.sh
 
-# Or explicitly
-./run-hetzner.sh provision
+# Full install - includes oh-my-zsh, extra tools (~10-15 minutes)
+./run-hetzner.sh full
 ```
 
-**What gets installed:**
+**Fast install includes:**
 - Ubuntu 24.04 ARM (2 vCPU, 4GB RAM, 40GB SSD)
-- Docker CE with security hardening
+- Docker CE
 - Node.js 22 + pnpm
 - Tailscale VPN
 - UFW firewall (SSH + Tailscale only)
 - Clawdbot latest version
 - Cost: €3.29/month
+- **Time: ~2-3 minutes**
+
+**Full install adds:**
+- oh-my-zsh (zsh framework)
+- 46 extra system tools (debugging, networking)
+- Git aliases and config
+- Vim configuration
+- **Time: ~10-15 minutes**
 
 ### List Servers
 
