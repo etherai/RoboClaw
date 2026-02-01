@@ -1,0 +1,3 @@
+[submodule "clawdbot-ansible"]
+	path = clawdbot-ansible
+	url = https://github.com/openclaw/clawdbot-ansible.git
