@@ -97,6 +97,33 @@
         state: absent
       tags: [delete]
 
+    - name: Update instance artifact with deletion timestamp
+      ansible.builtin.lineinfile:
+        path: "./instances/{{ target_server_name }}.yml"
+        insertafter: "^    provisioned_at:"
+        line: "    deleted_at: {{ ansible_date_time.iso8601 }}"
+        state: present
+      when: server_deleted.changed
+      ignore_errors: true
+      tags: [delete]
+
+    - name: Mark instance as deleted in artifact
+      ansible.builtin.lineinfile:
+        path: "./instances/{{ target_server_name }}.yml"
+        insertafter: "^    install_mode:"
+        line: "    status: deleted"
+        state: present
+      when: server_deleted.changed
+      ignore_errors: true
+      tags: [delete]
+
+    - name: Rename artifact file to indicate deletion
+      ansible.builtin.command:
+        cmd: mv "./instances/{{ target_server_name }}.yml" "./instances/{{ target_server_name }}_deleted.yml"
+      when: server_deleted.changed
+      ignore_errors: true
+      tags: [delete]
+
     - name: Display teardown complete
       ansible.builtin.debug:
         msg: |
@@ -109,5 +136,9 @@
           {% endif %}
           - Local IP file
 
+          Updated:
+          - Instance artifact renamed: instances/{{ target_server_name }}_deleted.yml
+
           To remove local SSH keys: rm hetzner_key hetzner_key.pub
+          To remove artifact history: rm instances/{{ target_server_name }}_deleted.yml
       tags: [delete]

@@ -8,19 +8,18 @@ An automated infrastructure-as-code solution that:
 
 1. **Provisions Infrastructure** - Creates a Hetzner Cloud VPS in Helsinki datacenter
 2. **Installs Clawdbot** - Fully automated setup using the clawdbot-ansible playbook
-3. **Security Hardening** - UFW firewall, Docker isolation, Tailscale VPN ready
+3. **Security Hardening** - UFW firewall, Docker isolation
 4. **One Command Deploy** - Everything runs from your local machine
 
 ## Architecture
 
 ```
 Local Machine                     Remote VPS (Helsinki)
-├── hetzner-finland.yml    →     ├── Ubuntu 24.04 ARM
+├── hetzner-finland-fast.yml →   ├── Ubuntu 24.04 ARM
 ├── clawdbot-ansible/      →     ├── Docker CE
 ├── run-hetzner.sh         →     ├── Node.js 22 + pnpm
-├── .env (API token)       →     ├── Tailscale
-└── hetzner_key (SSH)      →     ├── UFW Firewall
-                                 └── Clawdbot 2026.1.24-3
+├── .env (API token)       →     ├── UFW Firewall
+└── hetzner_key (SSH)      →     └── Clawdbot 2026.1.24-3
 ```
 
 ## How It Works
@@ -45,7 +44,7 @@ The playbook runs **three sequential plays**:
 ### Play 3: Install Clawdbot
 ```yaml
 - Run clawdbot-ansible role from local machine
-- Install: Docker, Node.js, Tailscale, UFW
+- Install: Docker, Node.js, UFW
 - Create clawdbot user with systemd lingering
 - Install Clawdbot via pnpm
 - Configure environment
@@ -57,7 +56,8 @@ The playbook runs **three sequential plays**:
 .
 ├── PROVISION.md                    # This file
 ├── HETZNER_SETUP.md               # Quick start guide
-├── hetzner-finland.yml            # Main playbook (3 plays)
+├── CLAUDE.md                      # Guide for Claude Code
+├── hetzner-finland-fast.yml       # Main playbook (3 plays)
 ├── hetzner-requirements.yml       # Ansible Galaxy dependencies
 ├── run-hetzner.sh                 # Wrapper script (virtualenv + .env)
 ├── list-server-types.sh           # List available Hetzner instance types
@@ -67,6 +67,7 @@ The playbook runs **three sequential plays**:
 ├── hetzner_key.pub                # Public key
 ├── finland-instance-ip.txt        # Saved IP address
 ├── available-server-types.txt     # Cached server type list
+├── instances/                     # Instance artifacts (YAML)
 ├── venv/                          # Python virtualenv for Ansible
 └── clawdbot-ansible/              # Clawdbot installation playbook
     ├── playbook.yml               # Clawdbot installer
@@ -75,7 +76,6 @@ The playbook runs **three sequential plays**:
         ├── tasks/
         │   ├── main.yml           # Task orchestration
         │   ├── system-tools.yml   # Base packages
-        │   ├── tailscale.yml      # VPN setup
         │   ├── user.yml           # User creation
         │   ├── docker.yml         # Docker CE
         │   ├── firewall.yml       # UFW configuration
@@ -100,11 +100,10 @@ The playbook runs **three sequential plays**:
 - Node.js: v22.22.0
 - pnpm: 10.28.2
 - Clawdbot: 2026.1.24-3
-- Tailscale: Latest (not yet connected)
 
 **Security**:
 - UFW Firewall: Enabled
-  - Allowed: SSH (22), Tailscale (41641/udp)
+  - Allowed: SSH (22)
   - Default: Deny incoming, allow outgoing
 - Docker: DOCKER-USER chain configured
 - User: clawdbot (non-root, sudo access)
@@ -123,36 +122,15 @@ cat > .env <<EOF
 HCLOUD_TOKEN=your-64-char-token-here
 EOF
 
-# 3. Run the playbook (fast mode is default)
+# 3. Run the playbook
 ./run-hetzner.sh
-
-# Or for full install with extras:
-./run-hetzner.sh full
 ```
 
-### Install Modes
+### Installation
 
-**Fast Mode (DEFAULT) - ~2-3 minutes:**
-- Installs essentials: Docker, Node.js, Tailscale, UFW, Clawdbot
-- Skips: Homebrew, oh-my-zsh, extra debug tools
+**Installs (~2-3 minutes):**
+- Essentials: Docker, Node.js, UFW, Clawdbot
 - Perfect for production or quick testing
-
-**Full Mode - ~10-15 minutes:**
-- Everything in Fast mode PLUS:
-- oh-my-zsh (zsh framework)
-- 46 extra system tools (debugging, networking)
-- Git aliases and config
-- Vim configuration
-- System dist-upgrade
-- Perfect for development environments
-
-```bash
-# Fast (default)
-./run-hetzner.sh
-
-# Full
-./run-hetzner.sh full
-```
 
 ### Connect to Server
 
@@ -235,7 +213,7 @@ rm hetzner_key hetzner_key.pub finland-instance-ip.txt
 
 ## Customization
 
-Edit `hetzner-finland.yml` to customize:
+Edit `hetzner-finland-fast.yml` to customize:
 
 ```yaml
 vars:
@@ -254,11 +232,6 @@ vars:
 - oh-my-zsh for clawdbot user
 - Global git configuration
 
-**Tailscale VPN**:
-- GPG key + repository
-- Tailscale package
-- Service enabled (manual `tailscale up` required)
-
 **User Management**:
 - clawdbot system user created
 - Home: `/home/clawdbot`
@@ -275,7 +248,7 @@ vars:
 
 **Firewall (UFW)**:
 - Default policies: deny incoming, allow outgoing
-- Allowed: SSH (22), Tailscale (41641/udp)
+- Allowed: SSH (22)
 - DOCKER-USER chain configured
 - Docker isolation enabled
 
@@ -293,7 +266,7 @@ vars:
 ## Key Features
 
 ### 1. Security First
-- Minimal attack surface (only SSH + Tailscale exposed)
+- Minimal attack surface (only SSH exposed)
 - Docker containers can't bypass firewall
 - Non-root execution
 - NOPASSWD sudo for convenience (can be changed)
@@ -335,21 +308,11 @@ clawdbot onboard --install-daemon
 # - Start the daemon
 ```
 
-### Optional: Connect Tailscale
-
-```bash
-# As root
-sudo tailscale up
-
-# Or with custom settings
-sudo tailscale up --ssh --accept-routes
-```
-
 ### Optional: Add More Servers
 
 ```bash
-# Edit server_name in hetzner-finland.yml
-vim hetzner-finland.yml
+# Edit server_name in hetzner-finland-fast.yml
+vim hetzner-finland-fast.yml
 
 # Change:
 # server_name: "finland-instance-2"
@@ -450,14 +413,15 @@ Success rate: 100%
 - Single-machine focus
 - Local execution only
 
-**Our hetzner-finland.yml**:
+**Our hetzner-finland-fast.yml**:
 - Provisions infrastructure first
 - Runs FROM local machine
 - Multi-server capable
 - Includes hello world validation
 - Integrates with cloud provider
+- Inline tasks for speed
 
-We're **using** clawdbot-ansible as a role, not replacing it.
+We implement our own lightweight installation, optimized for speed.
 
 ## Teardown Strategy
 
@@ -510,7 +474,6 @@ ansible-playbook hetzner-teardown.yml --tags delete -e delete_ssh_key=true
 
 Potential additions:
 - [ ] Multiple server provisioning in one run
-- [ ] Automated Tailscale connection
 - [ ] DNS record creation
 - [ ] Backup automation
 - [ ] Monitoring setup (Prometheus/Grafana)

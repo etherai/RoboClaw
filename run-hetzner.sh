@@ -55,15 +55,9 @@ case "${1:-provision}" in
         echo "Running teardown playbook..."
         ansible-playbook hetzner-teardown.yml --tags delete "$@"
         ;;
-    full)
+    provision|*)
         [ $# -gt 0 ] && shift
-        echo "Running FULL install with all extras (~10-15 minutes)..."
-        ansible-playbook hetzner-finland.yml "$@"
-        ;;
-    provision|fast|*)
-        [ $# -gt 0 ] && shift
-        echo "⚡ Running FAST install - essentials only (~2-3 minutes)..."
-        echo "For full install with oh-my-zsh and extras: ./run-hetzner.sh full"
+        echo "⚡ Provisioning and installing Clawdbot (~2-3 minutes)..."
         ansible-playbook hetzner-finland-fast.yml "$@"
         ;;
 esac

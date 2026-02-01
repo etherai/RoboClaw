@@ -96,7 +96,6 @@
           Installing essentials only:
           ✅ Docker CE
           ✅ Node.js 22 + pnpm
-          ✅ Tailscale VPN
           ✅ UFW Firewall
           ✅ Clawdbot
 
@@ -181,25 +180,6 @@
         state: started
         enabled: true
 
-    # Install Tailscale (fast)
-    - name: Add Tailscale GPG key
-      ansible.builtin.shell:
-        cmd: |
-          curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/$(lsb_release -cs).noarmor.gpg | tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
-        creates: /usr/share/keyrings/tailscale-archive-keyring.gpg
-
-    - name: Add Tailscale repository
-      ansible.builtin.shell:
-        cmd: |
-          echo "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/tailscale.list
-        creates: /etc/apt/sources.list.d/tailscale.list
-
-    - name: Install Tailscale
-      ansible.builtin.apt:
-        name: tailscale
-        state: present
-        update_cache: true
-
     # Configure UFW firewall (fast - minimal rules)
     - name: Install UFW
       ansible.builtin.apt:
@@ -219,12 +199,6 @@
         rule: allow
         port: '22'
         proto: tcp
-
-    - name: Allow Tailscale UDP port 41641
-      community.general.ufw:
-        rule: allow
-        port: '41641'
-        proto: udp
 
     - name: Enable UFW
       community.general.ufw:
@@ -324,7 +298,6 @@
           • Docker CE
           • Node.js {{ nodejs_version }}
           • pnpm (latest)
-          • Tailscale
           • UFW Firewall
           • Clawdbot {{ clawdbot_version.stdout }}
 
@@ -342,3 +315,68 @@
 
           To install extras later:
           apt install zsh tmux htop vim jq
+
+    - name: Create instances directory on local machine
+      ansible.builtin.file:
+        path: "./instances"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+      become: false
+
+    - name: Get Docker version
+      ansible.builtin.command: docker --version
+      register: docker_version_output
+      changed_when: false
+
+    - name: Get Node.js version
+      ansible.builtin.command: node --version
+      register: nodejs_version_output
+      changed_when: false
+
+    - name: Get pnpm version
+      ansible.builtin.command: pnpm --version
+      register: pnpm_version_output
+      changed_when: false
+
+    - name: Create instance artifact
+      ansible.builtin.copy:
+        content: |
+          # Instance provisioned on {{ ansible_date_time.iso8601 }}
+          instances:
+            - name: {{ hostvars['localhost']['server'].hcloud_server.name }}
+              ip: {{ ansible_default_ipv4.address }}
+              server_type: {{ hostvars['localhost']['server'].hcloud_server.server_type }}
+              location: {{ hostvars['localhost']['server'].hcloud_server.location }}
+              image: {{ hostvars['localhost']['server'].hcloud_server.image }}
+              provisioned_at: {{ ansible_date_time.iso8601 }}
+              install_mode: fast
+              software:
+                os: {{ ansible_distribution }} {{ ansible_distribution_version }}
+                kernel: {{ ansible_kernel }}
+                docker: {{ docker_version_output.stdout }}
+                nodejs: {{ nodejs_version_output.stdout }}
+                pnpm: {{ pnpm_version_output.stdout }}
+                clawdbot: {{ clawdbot_version.stdout }}
+              configuration:
+                clawdbot_user: {{ clawdbot_user }}
+                clawdbot_home: {{ clawdbot_home }}
+                clawdbot_config_dir: {{ clawdbot_config_dir }}
+              firewall:
+                ufw_enabled: true
+                allowed_ports:
+                  - port: 22
+                    proto: tcp
+                    description: SSH
+              ssh:
+                key_file: ./hetzner_key
+                public_key_file: ./hetzner_key.pub
+        dest: "./instances/{{ hostvars['localhost']['server'].hcloud_server.name }}.yml"
+        mode: '0644'
+      delegate_to: localhost
+      become: false
+
+    - name: Display artifact saved message
+      ansible.builtin.debug:
+        msg: |
+          📝 Instance artifact saved to: instances/{{ hostvars['localhost']['server'].hcloud_server.name }}.yml
