@@ -1,0 +1,113 @@
+---
+- name: List and Teardown Hetzner Cloud instances
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    hcloud_token: "{{ lookup('env', 'HCLOUD_TOKEN') }}"
+    target_server_name: "{{ server_name | default('finland-instance') }}"
+    remove_ssh_key: "{{ delete_ssh_key | default(false) }}"
+    ssh_key_name: "my-ssh-key"
+
+  tasks:
+    - name: Fail if HCLOUD_TOKEN is not set
+      ansible.builtin.fail:
+        msg: "Please set HCLOUD_TOKEN in .env file"
+      when: hcloud_token == ""
+
+    # List servers
+    - name: Get all servers
+      hetzner.hcloud.server_info:
+        api_token: "{{ hcloud_token }}"
+      register: all_servers
+      tags: [list, delete]
+
+    - name: Display all servers
+      ansible.builtin.debug:
+        msg: |
+          📋 Hetzner Cloud Servers:
+
+          {% for server in all_servers.hcloud_server_info %}
+          • {{ server.name }}
+            IP: {{ server.ipv4_address }}
+            Type: {{ server.server_type }}
+            Location: {{ server.location }}
+            Status: {{ server.status }}
+          {% endfor %}
+
+          Total: {{ all_servers.hcloud_server_info | length }} server(s)
+      tags: [list]
+
+    # Delete server
+    - name: Get specific server information
+      ansible.builtin.set_fact:
+        server_to_delete: "{{ all_servers.hcloud_server_info | selectattr('name', 'equalto', target_server_name) | list | first }}"
+      when: all_servers.hcloud_server_info | selectattr('name', 'equalto', target_server_name) | list | length > 0
+      tags: [delete]
+
+    - name: Fail if server not found
+      ansible.builtin.fail:
+        msg: "Server '{{ target_server_name }}' not found in Hetzner Cloud"
+      when: server_to_delete is not defined
+      tags: [delete]
+
+    - name: Display server to be deleted
+      ansible.builtin.debug:
+        msg: |
+          ⚠️  WARNING: About to DELETE:
+
+          Name: {{ server_to_delete.name }}
+          IP: {{ server_to_delete.ipv4_address }}
+          Type: {{ server_to_delete.server_type }}
+          Location: {{ server_to_delete.location }}
+      tags: [delete]
+
+    - name: Confirm deletion
+      ansible.builtin.pause:
+        prompt: "Type 'yes' to confirm deletion of {{ target_server_name }}"
+      register: confirm
+      tags: [delete]
+
+    - name: Abort if not confirmed
+      ansible.builtin.fail:
+        msg: "Deletion cancelled by user"
+      when: confirm.user_input != "yes"
+      tags: [delete]
+
+    - name: Delete Hetzner Cloud server
+      hetzner.hcloud.server:
+        api_token: "{{ hcloud_token }}"
+        name: "{{ target_server_name }}"
+        state: absent
+      register: server_deleted
+      tags: [delete]
+
+    - name: Delete SSH key from Hetzner
+      hetzner.hcloud.ssh_key:
+        api_token: "{{ hcloud_token }}"
+        name: "{{ ssh_key_name }}"
+        state: absent
+      when: remove_ssh_key | bool
+      register: ssh_key_deleted
+      tags: [delete]
+
+    - name: Remove local IP file
+      ansible.builtin.file:
+        path: "./finland-instance-ip.txt"
+        state: absent
+      tags: [delete]
+
+    - name: Display teardown complete
+      ansible.builtin.debug:
+        msg: |
+          ✅ Teardown complete!
+
+          Deleted:
+          - Server: {{ target_server_name }}
+          {% if ssh_key_deleted.changed %}
+          - SSH key: {{ ssh_key_name }}
+          {% endif %}
+          - Local IP file
+
+          To remove local SSH keys: rm hetzner_key hetzner_key.pub
+      tags: [delete]

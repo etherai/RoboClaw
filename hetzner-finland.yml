@@ -1,0 +1,187 @@
+---
+- name: Create Hetzner Cloud instance in Finland (Helsinki)
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    hcloud_token: "{{ lookup('env', 'HCLOUD_TOKEN') }}"
+    server_name: "finland-instance"
+    server_type: "cax11"  # 2 vCPU, 4GB RAM, 40GB disk (~€3.29/month, ARM)
+    location: "hel1"     # Helsinki, Finland
+    image: "ubuntu-24.04"
+    ssh_key_name: "my-ssh-key"
+    # Set your public SSH key here or via env var
+    ssh_public_key: "{{ lookup('env', 'SSH_PUBLIC_KEY') | default('', true) }}"
+
+  tasks:
+    - name: Fail if HCLOUD_TOKEN is not set
+      ansible.builtin.fail:
+        msg: "Please set HCLOUD_TOKEN environment variable with your Hetzner API token"
+      when: hcloud_token == ""
+
+    - name: Fail if SSH_PUBLIC_KEY is not set
+      ansible.builtin.fail:
+        msg: "Please set SSH_PUBLIC_KEY environment variable with your public key"
+      when: ssh_public_key == ""
+
+    - name: Create or update SSH key in Hetzner
+      hetzner.hcloud.ssh_key:
+        api_token: "{{ hcloud_token }}"
+        name: "{{ ssh_key_name }}"
+        public_key: "{{ ssh_public_key }}"
+        state: present
+      register: ssh_key
+
+    - name: Create Hetzner Cloud server in Helsinki
+      hetzner.hcloud.server:
+        api_token: "{{ hcloud_token }}"
+        name: "{{ server_name }}"
+        server_type: "{{ server_type }}"
+        image: "{{ image }}"
+        location: "{{ location }}"
+        ssh_keys:
+          - "{{ ssh_key_name }}"
+        state: present
+      register: server
+
+    - name: Display server information
+      ansible.builtin.debug:
+        msg: |
+          ✅ Server created successfully!
+
+          Name: {{ server.hcloud_server.name }}
+          IPv4: {{ server.hcloud_server.ipv4_address }}
+          IPv6: {{ server.hcloud_server.ipv6 }}
+          Location: {{ server.hcloud_server.location }} (Finland)
+          Type: {{ server.hcloud_server.server_type }}
+
+          Connect with:
+          ssh root@{{ server.hcloud_server.ipv4_address }}
+
+    - name: Save server IP to file
+      ansible.builtin.copy:
+        content: "{{ server.hcloud_server.ipv4_address }}"
+        dest: "./finland-instance-ip.txt"
+        mode: '0644'
+
+    - name: Add server to in-memory inventory
+      ansible.builtin.add_host:
+        name: "{{ server.hcloud_server.ipv4_address }}"
+        groups: finland_vps
+        ansible_user: root
+        ansible_ssh_private_key_file: "./hetzner_key"
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+
+    - name: Wait for SSH to become available
+      ansible.builtin.wait_for:
+        host: "{{ server.hcloud_server.ipv4_address }}"
+        port: 22
+        delay: 5
+        timeout: 300
+        state: started
+
+- name: Configure the Finland VPS instance
+  hosts: finland_vps
+  gather_facts: true
+
+  tasks:
+    - name: Hello World - Display server information
+      ansible.builtin.debug:
+        msg: |
+          🎉 Hello from Finland VPS!
+
+          Hostname: {{ ansible_hostname }}
+          OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+          Kernel: {{ ansible_kernel }}
+          Architecture: {{ ansible_architecture }}
+          CPU Cores: {{ ansible_processor_vcpus }}
+          RAM: {{ (ansible_memtotal_mb / 1024) | round(2) }}GB
+          IP Address: {{ ansible_default_ipv4.address }}
+
+    - name: Create a hello world file
+      ansible.builtin.copy:
+        content: |
+          Hello from Ansible!
+          Provisioned on: {{ ansible_date_time.iso8601 }}
+          Running on: {{ ansible_hostname }}
+        dest: /root/hello-ansible.txt
+        mode: '0644'
+
+    - name: Display hello world file
+      ansible.builtin.command: cat /root/hello-ansible.txt
+      register: hello_output
+      changed_when: false
+
+    - name: Show file contents
+      ansible.builtin.debug:
+        msg: "{{ hello_output.stdout_lines }}"
+
+- name: Install Clawdbot on Finland VPS
+  hosts: finland_vps
+  gather_facts: true
+  become: true
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    # Clawdbot role variables (from clawdbot-ansible/roles/clawdbot/defaults/main.yml)
+    clawdbot_user: clawdbot
+    clawdbot_home: "/home/{{ clawdbot_user }}"
+    clawdbot_config_dir: "{{ clawdbot_home }}/.clawdbot"
+    clawdbot_install_mode: release  # or 'development'
+    nodejs_version: "22.x"
+
+  environment:
+    TERM: xterm-256color
+    COLORTERM: truecolor
+
+  pre_tasks:
+    - name: Detect operating system
+      ansible.builtin.set_fact:
+        is_macos: "{{ ansible_os_family == 'Darwin' }}"
+        is_linux: "{{ ansible_os_family == 'Debian' }}"
+        is_debian: "{{ ansible_distribution in ['Debian', 'Ubuntu'] }}"
+        is_redhat: "{{ ansible_os_family == 'RedHat' }}"
+
+    - name: Display detected OS
+      ansible.builtin.debug:
+        msg: |
+          🔍 Detected OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+          OS Family: {{ ansible_os_family }}
+
+    - name: Update apt cache and upgrade all packages (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+        cache_valid_time: 3600
+      when: is_debian
+
+    - name: Install Ansible collections on control machine
+      ansible.builtin.command: ansible-galaxy collection install -r clawdbot-ansible/requirements.yml
+      args:
+        chdir: "{{ playbook_dir }}"
+      delegate_to: localhost
+      become: false
+      run_once: true
+      changed_when: false
+
+  roles:
+    - role: "{{ playbook_dir }}/clawdbot-ansible/roles/clawdbot"
+
+  post_tasks:
+    - name: Verify clawdbot installation
+      ansible.builtin.command: su - clawdbot -c "clawdbot --version"
+      register: clawdbot_version
+      changed_when: false
+
+    - name: Display installation complete message
+      ansible.builtin.debug:
+        msg: |
+          ✅ Clawdbot installation complete!
+
+          Version: {{ clawdbot_version.stdout }}
+          Server: {{ ansible_default_ipv4.address }}
+
+          Next steps:
+          1. SSH: ssh -i hetzner_key root@{{ ansible_default_ipv4.address }}
+          2. Switch user: sudo su - clawdbot
+          3. Onboard: clawdbot onboard --install-daemon
