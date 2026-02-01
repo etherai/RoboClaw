@@ -1,0 +1,31 @@
+# Instance provisioned on 2026-02-01T12:08:08Z
+instances:
+  - name: OpenClaw01
+    ip: 65.21.149.78
+    server_type: cax11
+    location: hel1
+    image: ubuntu-24.04
+    provisioned_at: 2026-02-01T12:08:08Z
+    install_mode: fast
+    onboarding_completed: false
+    software:
+      os: Ubuntu 24.04
+      kernel: 6.8.0-90-generic
+      docker: Docker version 29.2.0, build 0b9d198
+      nodejs: v22.22.0
+      pnpm: 10.28.2
+      openclaw: 2026.1.30
+      ttyd: installed
+    configuration:
+      openclaw_user: openclaw
+      openclaw_home: /home/openclaw
+      openclaw_config_dir: /home/openclaw/.openclaw
+    firewall:
+      ufw_enabled: true
+      allowed_ports:
+        - port: 22
+          proto: tcp
+          description: SSH
+    ssh:
+      key_file: "./ssh-keys/OpenClaw01_key"
+      public_key_file: "./ssh-keys/OpenClaw01_key.pub"
