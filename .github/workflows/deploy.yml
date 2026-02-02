@@ -43,20 +43,11 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('website/package-lock.json') }}-
             ${{ runner.os }}-nextjs-
 
-      - name: Temporarily move API routes (not needed for static export)
-        working-directory: ./website
-        run: mv app/api app/api.bak || true
-
       - name: Build Next.js static site
         working-directory: ./website
         env:
           NEXT_TELEMETRY_DISABLED: 1
         run: npm run build
-
-      - name: Restore API routes
-        working-directory: ./website
-        run: mv app/api.bak app/api || true
-        if: always()
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
