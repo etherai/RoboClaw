@@ -5,10 +5,13 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  // For GitHub Pages project sites, set BASE_PATH env var to /repository-name
+  // For user/org pages (username.github.io), leave BASE_PATH unset
+  basePath: process.env.BASE_PATH || '',
   // Next.js 16 uses Turbopack by default
-  turbopack: {},
-  // Exclude ssh2 from bundling (used in API routes which won't be in static export)
-  serverExternalPackages: ['ssh2'],
+  turbopack: {
+    root: process.cwd(),
+  },
 }
 
 export default nextConfig

@@ -170,9 +170,9 @@ export default function Home() {
                 <p>20TB Bandwidth</p>
               </div>
               <p className="text-sm text-gray-500">Direct Hetzner pricing. Zero markup.</p>
-              <Link href="/deploy" className="block mt-6">
-                <Button className="w-full">Deploy Now</Button>
-              </Link>
+              <a href="https://github.com/etherai/roboclaw" target="_blank" rel="noopener noreferrer" className="block mt-6">
+                <Button className="w-full">View on GitHub</Button>
+              </a>
             </div>
           </div>
         </div>

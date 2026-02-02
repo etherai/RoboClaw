@@ -40,11 +40,8 @@ export default function RootLayout({
                 <a href="/" className="text-gray-300 hover:text-white transition-colors">
                   Home
                 </a>
-                <a href="/deploy" className="text-gray-300 hover:text-white transition-colors">
-                  Deploy
-                </a>
-                <a href="/instances" className="text-gray-300 hover:text-white transition-colors">
-                  Instances
+                <a href="https://github.com/etherai/roboclaw" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">
+                  GitHub
                 </a>
                 <a href="https://discord.gg/6ccxYf3c6q" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">
                   Discord
