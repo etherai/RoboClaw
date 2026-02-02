@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
-import { Server, Shield, Cpu, Globe, Zap, Code } from 'lucide-react'
+import { Server, Shield, Cpu, Globe, Zap, Code, MessageCircle, Users } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -27,11 +27,12 @@ export default function Home() {
                   Launch Instance
                 </Button>
               </Link>
-              <Link href="/instances">
-                <Button variant="secondary" size="lg" className="min-w-[200px]">
-                  View Instances
+              <a href="https://discord.gg/6ccxYf3c6q" target="_blank" rel="noopener noreferrer">
+                <Button variant="secondary" size="lg" className="min-w-[200px] flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5" />
+                  Join Discord
                 </Button>
-              </Link>
+              </a>
             </div>
 
             {/* Terminal Mockup */}
@@ -96,6 +97,37 @@ export default function Home() {
               title="Helsinki DC"
               description="EU-based, low latency, privacy-friendly"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Discord Community Section */}
+      <section className="py-24 relative">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-gradient-to-r from-[#5865F2]/10 to-[#5865F2]/5 backdrop-blur-lg border border-[#5865F2]/20 rounded-2xl p-12 text-center relative overflow-hidden">
+              {/* Discord-themed gradient orb */}
+              <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#5865F2]/20 rounded-full blur-3xl"></div>
+              <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-[#5865F2]/10 rounded-full blur-3xl"></div>
+
+              <div className="relative z-10">
+                <div className="flex justify-center mb-6">
+                  <div className="w-16 h-16 bg-[#5865F2] rounded-full flex items-center justify-center">
+                    <Users className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+                <h2 className="text-4xl font-bold mb-4">Join the Community</h2>
+                <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                  Get help, share tips, and connect with other RoboClaw users in our Discord server
+                </p>
+                <a href="https://discord.gg/6ccxYf3c6q" target="_blank" rel="noopener noreferrer">
+                  <Button size="lg" className="bg-[#5865F2] hover:bg-[#4752C4] text-white min-w-[200px] flex items-center gap-2 mx-auto">
+                    <MessageCircle className="w-5 h-5" />
+                    Join Discord
+                  </Button>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>

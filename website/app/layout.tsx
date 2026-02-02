@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import Footer from '@/components/ui/Footer'
 
 export const metadata: Metadata = {
-  title: 'RoboClaw - Deploy in 2 Minutes',
+  title: 'RoboClaw Community Edition',
   description: 'One-click deployment of RoboClaw on Hetzner Cloud VPS',
 }
 
@@ -13,12 +14,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body className="antialiased flex flex-col min-h-screen">
         <nav className="border-b border-white/10 bg-background/80 backdrop-blur-lg sticky top-0 z-50">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16">
               <a href="/" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-purple to-accent-blue">
-                RoboClaw Deploy
+                RoboClaw Community Edition
               </a>
               <div className="flex items-center gap-6">
                 <a href="/" className="text-gray-300 hover:text-white transition-colors">
@@ -30,11 +31,17 @@ export default function RootLayout({
                 <a href="/instances" className="text-gray-300 hover:text-white transition-colors">
                   Instances
                 </a>
+                <a href="https://discord.gg/6ccxYf3c6q" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">
+                  Discord
+                </a>
               </div>
             </div>
           </div>
         </nav>
-        {children}
+        <main className="flex-1">
+          {children}
+        </main>
+        <Footer />
       </body>
     </html>
   )
