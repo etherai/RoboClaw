@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import Footer from '@/components/ui/Footer'
 
@@ -14,6 +15,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Privacy-friendly analytics by Plausible */}
+        <Script
+          src="https://plausible.io/js/pa-isqcaB2Pz2E0hTYv_lrro.js"
+          strategy="afterInteractive"
+          async
+        />
+        <Script id="plausible-init" strategy="afterInteractive">
+          {`
+            window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+            plausible.init()
+          `}
+        </Script>
+      </head>
       <body className="antialiased flex flex-col min-h-screen">
         <nav className="border-b border-white/10 bg-background/80 backdrop-blur-lg sticky top-0 z-50">
           <div className="container mx-auto px-4">
