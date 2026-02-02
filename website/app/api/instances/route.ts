@@ -67,6 +67,7 @@ export async function GET() {
               keyFile: inst.ssh?.key_file ?? '',
               publicKeyFile: inst.ssh?.public_key_file ?? '',
             },
+            gatewayToken: inst.software?.gateway_token ?? inst.gateway_token ?? '',
           }
 
           instances.push(instance)

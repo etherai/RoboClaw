@@ -99,7 +99,7 @@
 
     - name: Extract gateway token from config
       ansible.builtin.set_fact:
-        gateway_token: "{{ (openclaw_config_content.content | b64decode | from_json).gateway.token | default('') }}"
+        gateway_token: "{{ (openclaw_config_content.content | b64decode | from_json).gateway.auth.token | default('') }}"
       when: >
         openclaw_state == 'started' and
         openclaw_config_file.stat.exists and
