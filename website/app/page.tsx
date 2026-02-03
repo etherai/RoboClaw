@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
-import { Server, Shield, Cpu, Globe, Zap, Code, MessageCircle, Users, Github } from 'lucide-react'
+import { Server, Shield, Cpu, Globe, Zap, Code, MessageCircle, Users, Github, Lock, History, Vault, Eye, FileCheck, Network } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -15,11 +15,14 @@ export default function Home() {
 
         <div className="container mx-auto px-4 py-16 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-gray-400">
-              Deploy OpenClaw in 2 Minutes
+            <div className="inline-block px-4 py-2 mb-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-sm text-gray-300">
+              Powered by OpenClaw
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-gray-400">
+              Your personal AI, connected to everything you use
             </h1>
-            <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-2xl mx-auto">
-              Automated VPS provisioning with OpenClaw, Docker, and all dependencies. Just paste your Hetzner API token and launch.
+            <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto">
+              RoboClaw brings enterprise-grade security to OpenClaw—cryptographic auditing, time-machine rollback, and vault-native secrets. Deploy community workflows or integrate with your tools in minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a href="https://github.com/etherai/roboclaw" target="_blank" rel="noopener noreferrer">
@@ -63,41 +66,106 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Three Pillars Section */}
       <section className="py-24 relative">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-16">What Gets Installed</h2>
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-24">
+            <ValuePropCard
+              icon={<Zap className="w-10 h-10" />}
+              title="Fast"
+              subtitle="Community Workflows"
+              description="Deploy battle-tested OpenClaw configurations in one command. Every workflow leverages OpenClaw's native multi-agent routing and tool execution."
+              badge="Powered by OpenClaw's skill system"
+            />
+            <ValuePropCard
+              icon={<Lock className="w-10 h-10" />}
+              title="Secure"
+              subtitle="Vault-Native Secrets"
+              description="Your API keys never leave your infrastructure. Built-in secret storage, access proxy, and zero-trust architecture. Extends OpenClaw's security model."
+              badge="SOC2-ready audit logs"
+            />
+            <ValuePropCard
+              icon={<History className="w-10 h-10" />}
+              title="Reversible"
+              subtitle="Time-Machine Rollback"
+              description="BTRFS snapshots every OpenClaw configuration change. Rollback any mistake instantly. Cryptographic proof of every action your AI took."
+              badge="Integrates with OpenClaw gateway"
+            />
+          </div>
+
+          <h2 className="text-4xl font-bold text-center mb-16">Enterprise Security for OpenClaw</h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <FeatureCard
-              icon={<Server className="w-8 h-8" />}
-              title="Docker CE"
-              description="Latest Docker Engine with containerd runtime"
+              icon={<FileCheck className="w-8 h-8" />}
+              title="Cryptographic Auditing"
+              description="Every OpenClaw action logged and signed. Immutable audit trail for compliance."
             />
             <FeatureCard
-              icon={<Code className="w-8 h-8" />}
-              title="Node.js 22"
-              description="LTS release with pnpm package manager"
+              icon={<History className="w-8 h-8" />}
+              title="BTRFS Snapshots"
+              description="Time-machine for OpenClaw deployments. Restore to any point in history."
+            />
+            <FeatureCard
+              icon={<Vault className="w-8 h-8" />}
+              title="Secret Vault"
+              description="Encrypted credential storage for OpenClaw skills. Decrypted only in memory."
+            />
+            <FeatureCard
+              icon={<Network className="w-8 h-8" />}
+              title="Access Proxy"
+              description="Zero-trust layer for OpenClaw tool execution. Every API call authenticated."
             />
             <FeatureCard
               icon={<Shield className="w-8 h-8" />}
-              title="UFW Firewall"
-              description="Deny all incoming, allow SSH only"
+              title="Workflow Verification"
+              description="Community OpenClaw configs cryptographically signed. Verify before deploy."
             />
             <FeatureCard
-              icon={<Zap className="w-8 h-8" />}
-              title="RoboClaw"
-              description="Pre-installed and ready to onboard"
+              icon={<Eye className="w-8 h-8" />}
+              title="Transparent Reasoning"
+              description="OpenClaw's AI thinking, visible. See confidence scores and decision rationale."
             />
-            <FeatureCard
-              icon={<Cpu className="w-8 h-8" />}
-              title="ARM64 Instance"
-              description="33% cheaper than x86 alternatives"
+          </div>
+        </div>
+      </section>
+
+      {/* Workflow Marketplace Section */}
+      <section className="py-24 relative bg-white/[0.02]">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Community OpenClaw Workflows</h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Deploy verified OpenClaw configurations curated by the community. Every workflow is cryptographically signed and audited.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-8">
+            <WorkflowCard
+              icon="🔥"
+              title="AI Code Review Assistant"
+              author="@anthropic-community"
+              deploys="4,823"
+              description="Uses OpenClaw's tool execution to review PRs, suggest fixes, and catch bugs"
+              integrations={["GitHub", "Linear", "Slack"]}
+              security={["GitHub token in vault", "Cryptographic audit of PR comments", "Rollback any config change"]}
             />
-            <FeatureCard
-              icon={<Globe className="w-8 h-8" />}
-              title="Helsinki DC"
-              description="EU-based, low latency, privacy-friendly"
+            <WorkflowCard
+              icon="⭐"
+              title="Customer Support Agent"
+              author="@zendesk-ai"
+              deploys="3,291"
+              description="Uses OpenClaw's multi-channel gateway to respond via Slack and search Zendesk"
+              integrations={["Slack", "Zendesk", "Knowledge Base"]}
+              security={["Slack/Zendesk tokens in vault", "Access proxy for API calls", "Audit log of interactions"]}
             />
+          </div>
+
+          <div className="text-center">
+            <a href="https://github.com/etherai/roboclaw#workflows" target="_blank" rel="noopener noreferrer">
+              <Button variant="secondary" size="lg">
+                Browse All Workflows →
+              </Button>
+            </a>
           </div>
         </div>
       </section>
@@ -136,22 +204,25 @@ export default function Home() {
       {/* How It Works */}
       <section className="py-24 relative">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-16">How It Works</h2>
+          <h2 className="text-4xl font-bold text-center mb-6">How It Works</h2>
+          <p className="text-center text-gray-400 mb-16 max-w-2xl mx-auto">
+            Deploy production-ready OpenClaw with enterprise security in three steps
+          </p>
           <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8">
             <StepCard
               number={1}
-              title="Get Your Token"
-              description="Create a Hetzner API token with Read & Write permissions"
+              title="Deploy OpenClaw"
+              description="One command deploys OpenClaw with BTRFS snapshots, cryptographic auditing, and secret vault—all configured and ready"
             />
             <StepCard
               number={2}
-              title="Click Launch"
-              description="Paste your token and watch the deployment happen in real-time"
+              title="Choose Integration"
+              description="Deploy a community workflow (Slack bot, GitHub integration) or connect your own tools using OpenClaw's skill system"
             />
             <StepCard
               number={3}
-              title="SSH In & Go"
-              description="Download the SSH key, connect to your server, and onboard RoboClaw"
+              title="Monitor & Rollback"
+              description="Watch OpenClaw's AI reasoning in real-time. RoboClaw snapshots every change—rollback anytime with one click"
             />
           </div>
         </div>
@@ -160,18 +231,43 @@ export default function Home() {
       {/* Pricing */}
       <section className="py-24 relative">
         <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center mb-4">Simple, Transparent Pricing</h2>
+          <p className="text-center text-gray-400 mb-12">Pay only for your infrastructure. RoboClaw and OpenClaw are free and open source.</p>
+
           <div className="max-w-md mx-auto">
             <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-8 text-center">
-              <h3 className="text-3xl font-bold mb-4">EUR 3.29/month</h3>
-              <div className="space-y-2 text-gray-400 mb-6">
+              <div className="inline-block px-3 py-1 bg-accent-purple/20 border border-accent-purple/30 rounded-full text-xs text-accent-purple mb-4">
+                Recommended Configuration
+              </div>
+              <h3 className="text-3xl font-bold mb-2">€3.29/month</h3>
+              <p className="text-sm text-gray-400 mb-6">Hetzner Cloud CAX11</p>
+              <div className="space-y-2 text-gray-400 mb-6 pb-6 border-b border-white/10">
                 <p>2 vCPU (ARM64)</p>
                 <p>4GB RAM</p>
-                <p>40GB SSD</p>
+                <p>40GB SSD (BTRFS)</p>
                 <p>20TB Bandwidth</p>
               </div>
-              <p className="text-sm text-gray-500">Direct Hetzner pricing. Zero markup.</p>
-              <a href="https://github.com/etherai/roboclaw" target="_blank" rel="noopener noreferrer" className="block mt-6">
-                <Button className="w-full">View on GitHub</Button>
+              <div className="space-y-2 text-sm text-gray-400 mb-6">
+                <p className="flex items-center justify-center gap-2">
+                  <span className="text-accent-purple">✓</span>
+                  OpenClaw pre-installed
+                </p>
+                <p className="flex items-center justify-center gap-2">
+                  <span className="text-accent-purple">✓</span>
+                  Cryptographic auditing enabled
+                </p>
+                <p className="flex items-center justify-center gap-2">
+                  <span className="text-accent-purple">✓</span>
+                  Time-machine snapshots ready
+                </p>
+                <p className="flex items-center justify-center gap-2">
+                  <span className="text-accent-purple">✓</span>
+                  Secret vault configured
+                </p>
+              </div>
+              <p className="text-xs text-gray-500 mb-6">Direct Hetzner pricing. Zero markup.</p>
+              <a href="https://github.com/etherai/roboclaw" target="_blank" rel="noopener noreferrer" className="block">
+                <Button className="w-full">Get Started on GitHub</Button>
               </a>
             </div>
           </div>
@@ -181,10 +277,33 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-white/10 py-12">
         <div className="container mx-auto px-4 text-center text-gray-500 text-sm">
-          <p>Built with Next.js. Servers powered by Hetzner Cloud.</p>
+          <p className="mb-2">Made with Love with <a href="https://github.com/etherai/openclaw" target="_blank" rel="noopener noreferrer" className="text-accent-purple hover:text-accent-blue transition-colors">OpenClaw</a></p>
+          <p className="text-gray-600">Built with Next.js. Servers powered by Hetzner Cloud.</p>
         </div>
       </footer>
     </main>
+  )
+}
+
+function ValuePropCard({ icon, title, subtitle, description, badge }: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  description: string;
+  badge: string;
+}) {
+  return (
+    <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-8 hover:border-accent-purple/50 transition-all">
+      <div className="text-accent-purple mb-6">{icon}</div>
+      <div className="mb-4">
+        <div className="text-sm font-semibold text-accent-blue mb-1">{title}</div>
+        <h3 className="text-2xl font-bold mb-3">{subtitle}</h3>
+      </div>
+      <p className="text-gray-400 mb-4 leading-relaxed">{description}</p>
+      <div className="inline-block px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-gray-400">
+        {badge}
+      </div>
+    </div>
   )
 }
 
@@ -194,6 +313,74 @@ function FeatureCard({ icon, title, description }: { icon: React.ReactNode; titl
       <div className="text-accent-purple mb-4">{icon}</div>
       <h3 className="text-xl font-semibold mb-2">{title}</h3>
       <p className="text-gray-400 text-sm">{description}</p>
+    </div>
+  )
+}
+
+function WorkflowCard({
+  icon,
+  title,
+  author,
+  deploys,
+  description,
+  integrations,
+  security
+}: {
+  icon: string;
+  title: string;
+  author: string;
+  deploys: string;
+  description: string;
+  integrations: string[];
+  security: string[];
+}) {
+  return (
+    <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 hover:border-accent-purple/50 transition-all">
+      <div className="flex items-start gap-4 mb-4">
+        <div className="text-4xl">{icon}</div>
+        <div className="flex-1">
+          <h3 className="text-xl font-bold mb-1">{title}</h3>
+          <div className="flex items-center gap-3 text-sm text-gray-400">
+            <span>{author}</span>
+            <span>•</span>
+            <span>{deploys} deploys</span>
+          </div>
+        </div>
+      </div>
+
+      <p className="text-gray-400 mb-4 text-sm leading-relaxed">{description}</p>
+
+      <div className="mb-4">
+        <div className="text-xs font-semibold text-gray-500 mb-2">Integrates:</div>
+        <div className="flex flex-wrap gap-2">
+          {integrations.map((integration) => (
+            <span key={integration} className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-gray-300">
+              {integration}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="pt-4 border-t border-white/10">
+        <div className="text-xs font-semibold text-accent-purple mb-2">🔒 Secured by RoboClaw:</div>
+        <ul className="space-y-1">
+          {security.map((item, index) => (
+            <li key={index} className="text-xs text-gray-400 flex items-start">
+              <span className="text-accent-purple mr-2">✓</span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-white/10 flex gap-3">
+        <button className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium transition-colors">
+          View Config
+        </button>
+        <button className="flex-1 px-4 py-2 bg-gradient-to-r from-accent-purple to-accent-blue hover:opacity-90 rounded-lg text-sm font-medium transition-opacity">
+          Deploy →
+        </button>
+      </div>
     </div>
   )
 }

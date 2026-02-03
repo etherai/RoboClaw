@@ -10,10 +10,13 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <h3 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-purple to-accent-blue mb-2">
-              RoboClaw Community Edition
+              RoboClaw
             </h3>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-400 mb-2">
               Open-source AI agent deployment platform
+            </p>
+            <p className="text-sm text-gray-400">
+              Built for and by the OpenClaw community
             </p>
           </div>
 
@@ -91,9 +94,14 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-6 border-t border-white/5">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-500">
-              © {currentYear} RoboClaw Community Edition. All rights reserved.
-            </p>
+            <div className="flex flex-col items-center md:items-start gap-2">
+              <p className="text-sm text-gray-500">
+                © {currentYear} RoboClaw. All rights reserved.
+              </p>
+              <p className="text-xs text-gray-600">
+                This project is not officially affiliated with the OpenClaw project.
+              </p>
+            </div>
             <div className="flex gap-6">
               <a
                 href="#"

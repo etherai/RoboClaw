@@ -4,7 +4,7 @@ import './globals.css'
 import Footer from '@/components/ui/Footer'
 
 export const metadata: Metadata = {
-  title: 'RoboClaw Community Edition',
+  title: 'RoboClaw',
   description: 'One-click deployment of RoboClaw on Hetzner Cloud VPS',
 }
 
@@ -34,7 +34,7 @@ export default function RootLayout({
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16">
               <a href="/" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-purple to-accent-blue">
-                RoboClaw Community Edition
+                RoboClaw
               </a>
               <div className="flex items-center gap-6">
                 <a href="/" className="text-gray-300 hover:text-white transition-colors">
