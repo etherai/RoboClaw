@@ -1,8 +1,35 @@
-# Hetzner VPS Provisioning with RoboClaw
+# RoboClaw Deployment Automation
 
-One-command provisioning of VPS instances in Finland with automated RoboClaw installation.
+Automated deployment system for provisioning VPS instances and installing OpenClaw.
 
-## Quick Start
+**Two deployment modes:**
+1. **Deploy to existing servers** - Use any server with SSH access (recommended for testing)
+2. **Hetzner Cloud provisioning** - Provision new VPS instances automatically
+
+## Quick Start - Deploy to Existing Server
+
+```bash
+# 1. Setup Python environment
+~/.pyenv/versions/3.12.0/bin/python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+ansible-galaxy collection install hetzner.hcloud
+
+# 2. Create inventory from your server IP
+./create-inventory.sh <YOUR_SERVER_IP> inventory.ini
+
+# 3. Deploy OpenClaw and auto-onboard (one command!)
+INSTANCE_NAME_OVERRIDE=my-server ./run-deploy.sh \
+  -k ~/.ssh/your_key \
+  -i inventory.ini
+
+# That's it! The script will:
+# - Deploy OpenClaw + dependencies (~3-5 min)
+# - Create instance artifact
+# - Drop you into interactive onboarding wizard
+```
+
+## Quick Start - Hetzner Cloud Provisioning
 
 ```bash
 # 1. Get Hetzner API token from https://console.hetzner.cloud/
@@ -27,7 +54,65 @@ openclaw onboard --install-daemon
 
 ## Commands
 
-### Provision New Server
+### Deploy to Existing Server (CLI)
+
+#### Deploy with Auto-Onboard (Recommended)
+
+```bash
+# Deploy to any server with SSH access
+# By default, automatically launches 'openclaw onboard' after deployment
+./run-deploy.sh -k <ssh-key> -i <inventory-file>
+
+# With custom instance name
+INSTANCE_NAME_OVERRIDE=production ./run-deploy.sh \
+  -k ~/.ssh/prod-key \
+  -i prod-inventory.ini
+```
+
+**What gets installed:**
+- Ubuntu 24.04 (x86 or ARM)
+- Docker CE
+- Node.js 22 + pnpm
+- UFW firewall (SSH only)
+- OpenClaw latest version
+- Gemini CLI
+- ttyd (browser terminal)
+- **Time: ~3-5 minutes**
+
+#### Skip Auto-Onboard
+
+```bash
+# Deploy without launching onboarding wizard
+./run-deploy.sh -k <key> -i <inventory> --skip-onboard
+
+# Connect and onboard later
+./connect-instance.sh <instance-name> onboard
+```
+
+#### Create Inventory File
+
+```bash
+# Generate Ansible inventory from IP address
+./create-inventory.sh <IP> [output-file]
+
+# Example
+./create-inventory.sh 1.2.3.4 production.ini
+```
+
+#### Connect to Instance
+
+```bash
+# Connect and run onboarding wizard
+./connect-instance.sh <instance-name> onboard
+
+# Connect to interactive shell
+./connect-instance.sh <instance-name>
+
+# Connect with custom IP/key
+./connect-instance.sh --ip 1.2.3.4 --key ~/.ssh/key onboard
+```
+
+### Provision New Server (Hetzner Cloud)
 
 ```bash
 # Provision and install RoboClaw (~2-3 minutes)
@@ -226,15 +311,23 @@ openclaw onboard --install-daemon
 ├── PROVISION.md                 # Detailed technical documentation
 ├── HETZNER_SETUP.md            # Setup guide
 ├── ROBOCLAW_GUIDE.md           # RoboClaw integration guide
-├── run-hetzner.sh              # Main script (provision/list/delete)
+├── run-deploy.sh               # Deploy to existing servers (CLI)
+├── connect-instance.sh         # Connect to instances and run OpenClaw
+├── create-inventory.sh         # Generate inventory files from IP
+├── cleanup-ssh-key.yml         # Manage SSH keys in Hetzner
+├── run-hetzner.sh              # Provision new Hetzner servers
 ├── validate-instance.sh        # Validation script
-├── hetzner-finland-fast.yml    # Provision playbook
+├── hetzner-finland-fast.yml    # Hetzner provision playbook
 ├── hetzner-teardown.yml        # Teardown playbook
+├── reconfigure.yml             # Software installation playbook
 ├── list-server-types.sh        # List instance types
 ├── .env                        # Your API token (gitignored)
 ├── .env.example                # Template
+├── venv/                       # Python virtual environment
+├── requirements.txt            # Python dependencies
 ├── hetzner_key                 # SSH private key (auto-generated, gitignored)
 ├── hetzner_key.pub             # SSH public key
+├── ssh-keys/                   # SSH keys for deployments
 ├── finland-instance-ip.txt     # Server IP address
 ├── roboclaw/                   # RoboClaw source code (submodule)
 └── instances/                  # Instance artifacts (YAML)
@@ -242,9 +335,32 @@ openclaw onboard --install-daemon
 
 ## Requirements
 
+**For CLI deployment (run-deploy.sh):**
+- Python 3.12+ (required for Ansible 13+)
+- SSH access to target server(s)
+- Virtual environment (setup instructions below)
+
+**For Hetzner provisioning (run-hetzner.sh):**
 - Python 3.12+
 - Hetzner Cloud account with API token
-- No Ansible installation needed (uses virtualenv)
+- Virtual environment (setup instructions below)
+
+### Setup Python Environment
+
+```bash
+# Using pyenv (recommended)
+pyenv install 3.12.0
+~/.pyenv/versions/3.12.0/bin/python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+ansible-galaxy collection install hetzner.hcloud
+
+# Verify prerequisites
+./run-deploy.sh --help
+# Should show: ✓ Python 3.12.0, ✓ Ansible, etc.
+```
+
+The scripts automatically check prerequisites and provide helpful setup instructions if anything is missing.
 
 ## How It Works
 
@@ -326,9 +442,54 @@ rm instances/*_deleted.yml
 ./validate-instance.sh
 ```
 
+## Complete Workflows
+
+### Deploy to Existing Server - Complete Example
+
+```bash
+# 1. Setup prerequisites (one time)
+~/.pyenv/versions/3.12.0/bin/python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+ansible-galaxy collection install hetzner.hcloud
+
+# 2. Create inventory from your server IP
+./create-inventory.sh 192.168.1.100 production.ini
+
+# 3. Deploy and auto-onboard
+INSTANCE_NAME_OVERRIDE=production ./run-deploy.sh \
+  -k ~/.ssh/prod-key \
+  -i production.ini
+
+# The script will:
+# - Check prerequisites (Python 3.12+, Ansible, dependencies)
+# - Deploy OpenClaw + all dependencies
+# - Create artifact at ./instances/production.yml
+# - Automatically launch 'openclaw onboard' wizard
+# - Drop you into interactive configuration
+
+# 4. Later, reconnect if needed
+./connect-instance.sh production onboard
+```
+
+### Deploy Multiple Servers
+
+```bash
+# Server 1
+./create-inventory.sh 192.168.1.100 server1.ini
+INSTANCE_NAME_OVERRIDE=server1 ./run-deploy.sh -k key -i server1.ini
+
+# Server 2
+./create-inventory.sh 192.168.1.101 server2.ini
+INSTANCE_NAME_OVERRIDE=server2 ./run-deploy.sh -k key -i server2.ini
+
+# List all instances
+ls -la ./instances/
+```
+
 ## Examples
 
-### Provision Multiple Servers
+### Provision Multiple Servers (Hetzner)
 
 ```bash
 # Edit server name in hetzner-finland-fast.yml
@@ -418,7 +579,22 @@ For issues with:
 
 ---
 
-**TLDR:**
+## TLDR
+
+**Deploy to existing server (recommended):**
+```bash
+# Setup
+~/.pyenv/versions/3.12.0/bin/python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Deploy with auto-onboard
+./create-inventory.sh <IP> inventory.ini
+INSTANCE_NAME_OVERRIDE=my-server ./run-deploy.sh -k ~/.ssh/key -i inventory.ini
+# ↑ Automatically launches 'openclaw onboard' wizard
+```
+
+**Or provision new Hetzner server:**
 ```bash
 echo 'HCLOUD_TOKEN=your-token' > .env
 ./run-hetzner.sh                          # Provision (~2-3 min)
