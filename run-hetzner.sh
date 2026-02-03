@@ -67,9 +67,12 @@ check_prerequisites() {
     echo ""
 
     if [ $errors -ne 0 ]; then
-        echo "Prerequisites not met. Please install missing dependencies."
+        echo "Prerequisites not met."
         echo ""
-        echo "Quick setup:"
+        echo "Run automatic setup:"
+        echo "  ./setup.sh"
+        echo ""
+        echo "Or manual setup:"
         echo "  1. ~/.pyenv/versions/3.12.0/bin/python3 -m venv venv"
         echo "  2. source venv/bin/activate"
         echo "  3. pip install -r requirements.txt"

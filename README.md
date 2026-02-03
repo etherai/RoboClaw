@@ -9,16 +9,13 @@ Automated deployment system for provisioning VPS instances and installing OpenCl
 ## Quick Start - Deploy to Existing Server
 
 ```bash
-# 1. Setup Python environment
-~/.pyenv/versions/3.12.0/bin/python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-ansible-galaxy collection install hetzner.hcloud
+# 1. One-time setup (requires Python 3.12+)
+./setup.sh
 
 # 2. Create inventory from your server IP
 ./create-inventory.sh <YOUR_SERVER_IP> inventory.ini
 
-# 3. Deploy OpenClaw and auto-onboard (one command!)
+# 3. Deploy OpenClaw and auto-onboard
 INSTANCE_NAME_OVERRIDE=my-server ./run-deploy.sh \
   -k ~/.ssh/your_key \
   -i inventory.ini
@@ -28,6 +25,13 @@ INSTANCE_NAME_OVERRIDE=my-server ./run-deploy.sh \
 # - Create instance artifact
 # - Drop you into interactive onboarding wizard
 ```
+
+**What `./setup.sh` does:**
+- Detects Python 3.12+ (checks python3.12, python3, python, pyenv)
+- Creates virtual environment if needed
+- Installs all Python dependencies
+- Installs Ansible Hetzner collection
+- Provides helpful errors if Python 3.12+ not found
 
 ## Quick Start - Hetzner Cloud Provisioning
 
@@ -338,29 +342,30 @@ openclaw onboard --install-daemon
 **For CLI deployment (run-deploy.sh):**
 - Python 3.12+ (required for Ansible 13+)
 - SSH access to target server(s)
-- Virtual environment (setup instructions below)
 
 **For Hetzner provisioning (run-hetzner.sh):**
 - Python 3.12+
 - Hetzner Cloud account with API token
-- Virtual environment (setup instructions below)
 
-### Setup Python Environment
+### Automatic Setup
 
 ```bash
-# Using pyenv (recommended)
-pyenv install 3.12.0
-~/.pyenv/versions/3.12.0/bin/python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-ansible-galaxy collection install hetzner.hcloud
+# One command to install everything
+./setup.sh
 
-# Verify prerequisites
-./run-deploy.sh --help
-# Should show: ✓ Python 3.12.0, ✓ Ansible, etc.
+# That's it! The script will:
+# - Find Python 3.12+ (checks python3.12, python3, python, pyenv)
+# - Create virtual environment
+# - Install all dependencies
+# - Install Ansible collections
 ```
 
-The scripts automatically check prerequisites and provide helpful setup instructions if anything is missing.
+If you don't have Python 3.12+, the script will show you how to install it:
+- **pyenv** (recommended): `pyenv install 3.12.0`
+- **apt** (Ubuntu/Debian): `sudo apt install python3.12 python3.12-venv`
+- **brew** (macOS): `brew install python@3.12`
+
+The deployment scripts automatically check prerequisites and suggest running `./setup.sh` if anything is missing.
 
 ## How It Works
 
@@ -447,11 +452,8 @@ rm instances/*_deleted.yml
 ### Deploy to Existing Server - Complete Example
 
 ```bash
-# 1. Setup prerequisites (one time)
-~/.pyenv/versions/3.12.0/bin/python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-ansible-galaxy collection install hetzner.hcloud
+# 1. One-time setup (requires Python 3.12+)
+./setup.sh
 
 # 2. Create inventory from your server IP
 ./create-inventory.sh 192.168.1.100 production.ini
@@ -583,10 +585,8 @@ For issues with:
 
 **Deploy to existing server (recommended):**
 ```bash
-# Setup
-~/.pyenv/versions/3.12.0/bin/python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+# One-time setup
+./setup.sh
 
 # Deploy with auto-onboard
 ./create-inventory.sh <IP> inventory.ini
