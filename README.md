@@ -12,10 +12,10 @@ Automated deployment system for provisioning VPS instances and installing OpenCl
 
 ```bash
 # One command to deploy OpenClaw and auto-onboard
-./run-deploy.sh <YOUR_SERVER_IP> -k ~/.ssh/your_key
+./cli/run-deploy.sh <YOUR_SERVER_IP> -k ~/.ssh/your_key
 
 # With custom instance name
-./run-deploy.sh <YOUR_SERVER_IP> -k ~/.ssh/your_key -n production
+./cli/run-deploy.sh <YOUR_SERVER_IP> -k ~/.ssh/your_key -n production
 
 # That's it! The script will:
 # - Auto-install dependencies if needed (Python 3.12+, Ansible, collections)
@@ -44,10 +44,10 @@ Automated deployment system for provisioning VPS instances and installing OpenCl
 echo 'HCLOUD_TOKEN=your-64-char-token-here' > .env
 
 # 3. Provision VPS (~2-3 minutes)
-./run-hetzner.sh
+./cli/run-hetzner.sh
 
 # 4. Validate installation (17 checks)
-./validate-instance.sh
+./cli/validate-instance.sh
 
 # 5. Connect
 ssh -i hetzner_key root@$(cat finland-instance-ip.txt)
@@ -65,13 +65,13 @@ openclaw onboard --install-daemon
 
 ```bash
 # One-command deployment (recommended)
-./run-deploy.sh <IP> -k <ssh-key>
+./cli/run-deploy.sh <IP> -k <ssh-key>
 
 # With custom instance name
-./run-deploy.sh <IP> -k <ssh-key> -n production
+./cli/run-deploy.sh <IP> -k <ssh-key> -n production
 
 # Legacy: Using inventory file (still supported)
-./run-deploy.sh -k <ssh-key> -i <inventory-file>
+./cli/run-deploy.sh -k <ssh-key> -i <inventory-file>
 ```
 
 **What gets installed:**
@@ -88,10 +88,10 @@ openclaw onboard --install-daemon
 
 ```bash
 # Deploy without launching onboarding wizard
-./run-deploy.sh <IP> -k <key> --skip-onboard
+./cli/run-deploy.sh <IP> -k <key> --skip-onboard
 
 # Connect and onboard later
-./connect-instance.sh <instance-name> onboard
+./cli/connect-instance.sh <instance-name> onboard
 ```
 
 #### Create Inventory File (Advanced)
@@ -99,30 +99,30 @@ openclaw onboard --install-daemon
 ```bash
 # For advanced use cases with multiple servers
 # Most users should use direct IP deployment instead
-./create-inventory.sh <IP> [output-file]
+./cli/create-inventory.sh <IP> [output-file]
 
 # Example
-./create-inventory.sh 1.2.3.4 production.ini
+./cli/create-inventory.sh 1.2.3.4 production.ini
 ```
 
 #### Connect to Instance
 
 ```bash
 # Connect and run onboarding wizard
-./connect-instance.sh <instance-name> onboard
+./cli/connect-instance.sh <instance-name> onboard
 
 # Connect to interactive shell
-./connect-instance.sh <instance-name>
+./cli/connect-instance.sh <instance-name>
 
 # Connect with custom IP/key
-./connect-instance.sh --ip 1.2.3.4 --key ~/.ssh/key onboard
+./cli/connect-instance.sh --ip 1.2.3.4 --key ~/.ssh/key onboard
 ```
 
 ### Provision New Server (Hetzner Cloud)
 
 ```bash
 # Provision and install RoboClaw (~2-3 minutes)
-./run-hetzner.sh
+./cli/run-hetzner.sh
 ```
 
 **Install includes:**
@@ -138,7 +138,7 @@ openclaw onboard --install-daemon
 
 ```bash
 # Validate provisioning was successful
-./validate-instance.sh
+./cli/validate-instance.sh
 ```
 
 Runs 17 checks including:
@@ -152,20 +152,20 @@ Runs 17 checks including:
 
 ```bash
 # Show all servers in your Hetzner account
-./run-hetzner.sh list
+./cli/run-hetzner.sh list
 ```
 
 ### Delete Server
 
 ```bash
 # Delete default server (finland-instance) with confirmation prompt
-./run-hetzner.sh delete
+./cli/run-hetzner.sh delete
 
 # Delete specific server
-./run-hetzner.sh delete -e server_name=my-server
+./cli/run-hetzner.sh delete -e server_name=my-server
 
 # Delete server AND remove SSH key from Hetzner
-./run-hetzner.sh delete -e delete_ssh_key=true
+./cli/run-hetzner.sh delete -e delete_ssh_key=true
 ```
 
 ### Clean Up Local Files
@@ -195,7 +195,7 @@ vars:
 
 ```bash
 # List all available instance types and prices
-./list-server-types.sh
+./cli/list-server-types.sh
 cat available-server-types.txt
 ```
 
@@ -217,7 +217,7 @@ After successful provisioning, a YAML artifact is automatically created in `inst
 
 **The validation script uses these artifacts** to verify that the actual server state matches what was provisioned.
 
-**Lifecycle tracking:** When you delete a server using `./run-hetzner.sh delete`, the artifact is:
+**Lifecycle tracking:** When you delete a server using `./cli/run-hetzner.sh delete`, the artifact is:
 - Renamed from `<server-name>.yml` to `<server-name>_deleted.yml`
 - Updated with `deleted_at` timestamp
 - Updated with `status: deleted` flag
@@ -260,13 +260,13 @@ After provisioning, validate that everything was installed correctly:
 
 ```bash
 # Validate default instance (finland-instance)
-./validate-instance.sh
+./cli/validate-instance.sh
 
 # Validate specific instance
-./validate-instance.sh my-server
+./cli/validate-instance.sh my-server
 
 # Show help
-./validate-instance.sh --help
+./cli/validate-instance.sh --help
 ```
 
 The validation script checks:
@@ -317,16 +317,22 @@ openclaw onboard --install-daemon
 ├── PROVISION.md                 # Detailed technical documentation
 ├── HETZNER_SETUP.md            # Setup guide
 ├── ROBOCLAW_GUIDE.md           # RoboClaw integration guide
-├── run-deploy.sh               # Deploy to existing servers (CLI)
-├── connect-instance.sh         # Connect to instances and run OpenClaw
-├── create-inventory.sh         # Generate inventory files from IP
-├── cleanup-ssh-key.yml         # Manage SSH keys in Hetzner
-├── run-hetzner.sh              # Provision new Hetzner servers
-├── validate-instance.sh        # Validation script
-├── hetzner-finland-fast.yml    # Hetzner provision playbook
-├── hetzner-teardown.yml        # Teardown playbook
-├── reconfigure.yml             # Software installation playbook
-├── list-server-types.sh        # List instance types
+├── LICENSE                      # GNU AGPL v3 license
+├── cli/                         # CLI scripts and Ansible playbooks
+│   ├── run-deploy.sh           # Deploy to existing servers
+│   ├── setup.sh                # One-command environment setup
+│   ├── connect-instance.sh     # Connect to instances and run OpenClaw
+│   ├── create-inventory.sh     # Generate inventory files from IP
+│   ├── run-hetzner.sh          # Provision new Hetzner servers
+│   ├── validate-instance.sh    # Validation script
+│   ├── list-server-types.sh    # List instance types
+│   ├── cleanup-ssh-key.yml     # Manage SSH keys in Hetzner
+│   ├── reconfigure.yml         # Software installation playbook
+│   ├── hetzner-finland-fast.yml # Hetzner provision playbook
+│   ├── hetzner-teardown.yml    # Teardown playbook
+│   ├── openclaw-service.yml    # OpenClaw service management
+│   ├── validate-openclaw.yml   # OpenClaw validation
+│   └── ansible.cfg             # Ansible configuration
 ├── .env                        # Your API token (gitignored)
 ├── .env.example                # Template
 ├── venv/                       # Python virtual environment
@@ -334,9 +340,9 @@ openclaw onboard --install-daemon
 ├── hetzner_key                 # SSH private key (auto-generated, gitignored)
 ├── hetzner_key.pub             # SSH public key
 ├── ssh-keys/                   # SSH keys for deployments
-├── finland-instance-ip.txt     # Server IP address
-├── roboclaw/                   # RoboClaw source code (submodule)
-└── instances/                  # Instance artifacts (YAML)
+├── instances/                  # Instance artifacts (YAML)
+├── website/                    # Landing page and documentation
+└── roboclaw/                   # RoboClaw source code (submodule)
 ```
 
 ## Requirements
@@ -353,7 +359,7 @@ openclaw onboard --install-daemon
 
 ```bash
 # One command to install everything
-./setup.sh
+./cli/setup.sh
 
 # That's it! The script will:
 # - Find Python 3.12+ (checks python3.12, python3, python, pyenv)
@@ -367,7 +373,7 @@ If you don't have Python 3.12+, the script will show you how to install it:
 - **apt** (Ubuntu/Debian): `sudo apt install python3.12 python3.12-venv`
 - **brew** (macOS): `brew install python@3.12`
 
-The deployment scripts automatically check prerequisites and suggest running `./setup.sh` if anything is missing.
+The deployment scripts automatically check prerequisites and suggest running `./cli/setup.sh` if anything is missing.
 
 ## How It Works
 
@@ -395,7 +401,7 @@ Everything runs from your local machine. No manual SSH required.
 ### Check if provisioning was successful
 ```bash
 # Run validation to diagnose issues
-./validate-instance.sh
+./cli/validate-instance.sh
 
 # Shows exactly which checks pass/fail:
 # - SSH connectivity
@@ -409,7 +415,7 @@ Everything runs from your local machine. No manual SSH required.
 Your API token is read-only. Create a new token with **Read & Write** permissions.
 
 ### "Server type unavailable"
-Run `./list-server-types.sh` to see available types in Helsinki.
+Run `./cli/list-server-types.sh` to see available types in Helsinki.
 
 ### Can't SSH to server
 ```bash
@@ -418,7 +424,7 @@ Run `./list-server-types.sh` to see available types in Helsinki.
 ssh -i hetzner_key -v root@$(cat finland-instance-ip.txt)
 
 # Or use validation script
-./validate-instance.sh
+./cli/validate-instance.sh
 ```
 
 ### Playbook fails mid-run
@@ -426,14 +432,14 @@ Re-run it. The playbook is idempotent (safe to run multiple times).
 
 ```bash
 # After re-running, validate the instance
-./run-hetzner.sh
-./validate-instance.sh
+./cli/run-hetzner.sh
+./cli/validate-instance.sh
 ```
 
 ### Want to start fresh
 ```bash
 # Delete server
-./run-hetzner.sh delete
+./cli/run-hetzner.sh delete
 # This renames the artifact to finland-instance_deleted.yml
 
 # Remove local files (optional)
@@ -443,10 +449,10 @@ rm hetzner_key hetzner_key.pub finland-instance-ip.txt
 rm instances/*_deleted.yml
 
 # Provision again
-./run-hetzner.sh
+./cli/run-hetzner.sh
 
 # Validate
-./validate-instance.sh
+./cli/validate-instance.sh
 ```
 
 ## Complete Workflows
@@ -455,7 +461,7 @@ rm instances/*_deleted.yml
 
 ```bash
 # One command to deploy and auto-onboard
-./run-deploy.sh 192.168.1.100 -k ~/.ssh/prod-key -n production
+./cli/run-deploy.sh 192.168.1.100 -k ~/.ssh/prod-key -n production
 
 # The script will:
 # - Auto-install Python 3.12+, venv, Ansible, dependencies if needed
@@ -465,17 +471,17 @@ rm instances/*_deleted.yml
 # - Drop you into interactive configuration
 
 # Later, reconnect if needed
-./connect-instance.sh production onboard
+./cli/connect-instance.sh production onboard
 ```
 
 ### Deploy Multiple Servers
 
 ```bash
 # Server 1
-./run-deploy.sh 192.168.1.100 -k ~/.ssh/key -n server1
+./cli/run-deploy.sh 192.168.1.100 -k ~/.ssh/key -n server1
 
 # Server 2
-./run-deploy.sh 192.168.1.101 -k ~/.ssh/key -n server2
+./cli/run-deploy.sh 192.168.1.101 -k ~/.ssh/key -n server2
 
 # List all instances
 ls -la ./instances/
@@ -491,37 +497,37 @@ vim hetzner-finland-fast.yml
 # Change: server_name: "finland-instance-2"
 
 # Run provisioning
-./run-hetzner.sh
+./cli/run-hetzner.sh
 
 # Validate the new instance
-./validate-instance.sh finland-instance-2
+./cli/validate-instance.sh finland-instance-2
 
 # List all servers
-./run-hetzner.sh list
+./cli/run-hetzner.sh list
 ```
 
 ### Use Different Instance Type
 
 ```bash
 # See available types
-./list-server-types.sh
+./cli/list-server-types.sh
 
 # Edit hetzner-finland-fast.yml
 vim hetzner-finland-fast.yml
 # Change: server_type: "cax21"  # 4 vCPU, 8GB RAM
 
 # Provision
-./run-hetzner.sh
+./cli/run-hetzner.sh
 
 # Validate
-./validate-instance.sh
+./cli/validate-instance.sh
 ```
 
 ### Validate Provisioning
 
 ```bash
 # Check if provisioning was successful
-./validate-instance.sh
+./cli/validate-instance.sh
 
 # Example successful output:
 # ✓ All validation checks passed!
@@ -530,7 +536,7 @@ vim hetzner-finland-fast.yml
 # Checks Failed: 0
 
 # Validate a specific instance
-./validate-instance.sh my-server
+./cli/validate-instance.sh my-server
 
 # If validation fails, it shows which checks failed
 # Then you can re-provision or fix specific issues
@@ -540,10 +546,10 @@ vim hetzner-finland-fast.yml
 
 ```bash
 # List servers first
-./run-hetzner.sh list
+./cli/run-hetzner.sh list
 
 # Delete by name
-./run-hetzner.sh delete -e server_name=finland-instance-2
+./cli/run-hetzner.sh delete -e server_name=finland-instance-2
 ```
 
 ## Documentation
@@ -578,15 +584,15 @@ For issues with:
 **Deploy to existing server (recommended):**
 ```bash
 # One command - auto-installs dependencies, deploys, and onboards
-./run-deploy.sh <IP> -k ~/.ssh/key -n my-server
+./cli/run-deploy.sh <IP> -k ~/.ssh/key -n my-server
 # ↑ Automatically launches 'openclaw onboard' wizard
 ```
 
 **Or provision new Hetzner server:**
 ```bash
 echo 'HCLOUD_TOKEN=your-token' > .env
-./run-hetzner.sh                          # Provision (~2-3 min)
-./validate-instance.sh                     # Validate (17 checks)
+./cli/run-hetzner.sh                          # Provision (~2-3 min)
+./cli/validate-instance.sh                     # Validate (17 checks)
 ssh -i hetzner_key root@$(cat finland-instance-ip.txt)
 sudo su - roboclaw
 openclaw onboard --install-daemon

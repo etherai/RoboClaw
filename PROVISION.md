@@ -17,7 +17,7 @@ An automated infrastructure-as-code solution that:
 Local Machine                     Remote VPS (Helsinki)
 ├── hetzner-finland-fast.yml →   ├── Ubuntu 24.04 ARM
 ├── roboclaw-ansible/      →     ├── Docker CE
-├── run-hetzner.sh         →     ├── Node.js 22 + pnpm
+├── cli/run-hetzner.sh         →     ├── Node.js 22 + pnpm
 ├── .env (API token)       →     ├── UFW Firewall
 └── hetzner_key (SSH)      →     └── RoboClaw 2026.1.24-3
 ```
@@ -59,7 +59,7 @@ The playbook runs **three sequential plays**:
 ├── ROBOCLAW_GUIDE.md              # RoboClaw integration guide
 ├── hetzner-finland-fast.yml       # Main playbook (3 plays)
 ├── hetzner-requirements.yml       # Ansible Galaxy dependencies
-├── run-hetzner.sh                 # Wrapper script (virtualenv + .env)
+├── cli/run-hetzner.sh                 # Wrapper script (virtualenv + .env)
 ├── list-server-types.sh           # List available Hetzner instance types
 ├── .env                           # HCLOUD_TOKEN (gitignored)
 ├── .env.example                   # Template for .env
@@ -123,7 +123,7 @@ HCLOUD_TOKEN=your-64-char-token-here
 EOF
 
 # 3. Run the playbook
-./run-hetzner.sh
+./cli/cli/run-hetzner.sh
 ```
 
 ### Installation
@@ -154,10 +154,10 @@ The playbook is **idempotent** - safe to run multiple times:
 
 ```bash
 # Update existing server
-./run-hetzner.sh
+./cli/cli/run-hetzner.sh
 
 # Provision a new server (change server_name in yml first)
-./run-hetzner.sh
+./cli/cli/run-hetzner.sh
 ```
 
 ### List Available Instance Types
@@ -318,7 +318,7 @@ vim hetzner-finland-fast.yml
 # server_name: "finland-instance-2"
 
 # Run playbook
-./run-hetzner.sh
+./cli/cli/run-hetzner.sh
 ```
 
 ## Costs
@@ -364,7 +364,7 @@ Re-run it. The playbook is idempotent and will resume from where it failed.
 rm finland-instance-ip.txt hetzner_key hetzner_key.pub
 
 # Re-run
-./run-hetzner.sh
+./cli/cli/run-hetzner.sh
 ```
 
 ## Technical Notes
@@ -499,4 +499,4 @@ We've built a production-ready, automated VPS provisioning system that:
 - ✅ Costs €3.29/month
 - ✅ Deployed in Helsinki, Finland
 
-**One command to production**: `./run-hetzner.sh`
+**One command to production**: `./cli/cli/run-hetzner.sh`

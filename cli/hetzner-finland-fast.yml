@@ -472,7 +472,7 @@
               ssh:
                 key_file: "{{ deployment_ssh_key_path }}"
                 public_key_file: "{{ deployment_ssh_key_path }}.pub"
-        dest: "./instances/{{ deployment_server_name }}.yml"
+        dest: "../instances/{{ deployment_server_name }}.yml"
         mode: '0644'
       delegate_to: localhost
       become: false

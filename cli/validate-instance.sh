@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
+# Change to script directory (cli/) to ensure relative paths work
+cd "$(dirname "$0")"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -60,13 +63,13 @@ if [[ "$INSTANCE_NAME" == "-h" ]] || [[ "$INSTANCE_NAME" == "--help" ]]; then
     usage
 fi
 
-ARTIFACT_FILE="instances/${INSTANCE_NAME}.yml"
+ARTIFACT_FILE="../instances/${INSTANCE_NAME}.yml"
 SSH_KEY="hetzner_key"
 
 # Check if artifact file exists
 if [[ ! -f "$ARTIFACT_FILE" ]]; then
     # Check if a deleted version exists
-    DELETED_ARTIFACT="instances/${INSTANCE_NAME}_deleted.yml"
+    DELETED_ARTIFACT="../instances/${INSTANCE_NAME}_deleted.yml"
     if [[ -f "$DELETED_ARTIFACT" ]]; then
         DELETED_AT=$(grep "^    deleted_at:" "$DELETED_ARTIFACT" | sed 's/.*deleted_at: //' | tr -d ' ')
         echo -e "${RED}Error: Instance '$INSTANCE_NAME' was deleted${NC}"
@@ -85,8 +88,8 @@ if [[ ! -f "$ARTIFACT_FILE" ]]; then
     echo -e "${RED}Error: Artifact file not found: $ARTIFACT_FILE${NC}"
     echo ""
     echo "Available instances:"
-    if [[ -d "instances" ]] && [[ -n "$(ls -A instances/*.yml 2>/dev/null)" ]]; then
-        for f in instances/*.yml; do
+    if [[ -d "instances" ]] && [[ -n "$(ls -A ../instances/*.yml 2>/dev/null)" ]]; then
+        for f in ../instances/*.yml; do
             basename "$f" .yml | sed 's/_deleted$//'
         done
     else

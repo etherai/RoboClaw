@@ -107,7 +107,7 @@
 
     - name: Build instance YAML path
       ansible.builtin.set_fact:
-        instance_yaml_path: "./instances/{{ instance_name }}.yml"
+        instance_yaml_path: "../instances/{{ instance_name }}.yml"
       when: >
         openclaw_state == 'started' and
         gateway_token is defined and

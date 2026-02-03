@@ -1,12 +1,19 @@
 #!/bin/bash
 set -e
 
+# Store original directory for resolving user-provided paths
+ORIGINAL_DIR="$(pwd)"
+
+# Change to script directory (cli/) to ensure relative paths work
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
+
 # Deploy OpenClaw to existing servers using SSH key and Ansible inventory
 #
 # Usage:
-#   ./run-deploy.sh <IP> --ssh-key <path> [options]
-#   ./run-deploy.sh <IP> -k <path> [options]
-#   ./run-deploy.sh -k <path> -i <path> [options]  (backward compatibility)
+#   ./cli/run-deploy.sh <IP> --ssh-key <path> [options]
+#   ./cli/run-deploy.sh <IP> -k <path> [options]
+#   ./cli/run-deploy.sh -k <path> -i <path> [options]  (backward compatibility)
 #
 # Environment variables (alternative to flags):
 #   SSH_PRIVATE_KEY_PATH  Path to SSH private key
@@ -103,15 +110,15 @@ auto_setup() {
     echo ""
 
     # Create venv if it doesn't exist
-    if [ ! -d "venv" ]; then
+    if [ ! -d "../venv" ]; then
         echo "Creating virtual environment..."
-        $PYTHON_CMD -m venv venv
+        $PYTHON_CMD -m venv ../venv
         echo "✓ Virtual environment created"
         echo ""
     fi
 
     # Activate venv
-    source venv/bin/activate
+    source ../venv/bin/activate
 
     # Check if dependencies are installed
     local need_install=0
@@ -125,7 +132,7 @@ auto_setup() {
     if [ $need_install -eq 1 ]; then
         echo "Installing dependencies..."
         pip install --upgrade pip -q
-        pip install -r requirements.txt
+        pip install -r ../requirements.txt
         echo "✓ Dependencies installed"
         echo ""
     fi
@@ -146,7 +153,7 @@ auto_setup() {
 auto_setup
 
 # Activate virtualenv
-source venv/bin/activate
+source ../venv/bin/activate
 
 # Parse arguments
 SSH_KEY="${SSH_PRIVATE_KEY_PATH:-}"
@@ -189,9 +196,9 @@ while [[ $# -gt 0 ]]; do
             echo "Deploy OpenClaw to existing servers using SSH key and Ansible inventory"
             echo ""
             echo "Usage:"
-            echo "  ./run-deploy.sh <IP> -k <ssh-key> [options]          # Direct IP (recommended)"
-            echo "  ./run-deploy.sh <IP> -k <ssh-key> -n <name>          # With instance name"
-            echo "  ./run-deploy.sh -k <ssh-key> -i <inventory>          # Inventory file (advanced)"
+            echo "  ./cli/run-deploy.sh <IP> -k <ssh-key> [options]          # Direct IP (recommended)"
+            echo "  ./cli/run-deploy.sh <IP> -k <ssh-key> -n <name>          # With instance name"
+            echo "  ./cli/run-deploy.sh -k <ssh-key> -i <inventory>          # Inventory file (advanced)"
             echo ""
             echo "Options:"
             echo "  -k, --ssh-key <path>       Path to SSH private key (required)"
@@ -208,10 +215,10 @@ while [[ $# -gt 0 ]]; do
             echo "  INSTANCE_NAME_OVERRIDE     Override instance name in artifact"
             echo ""
             echo "Examples:"
-            echo "  ./run-deploy.sh 192.168.1.100 -k ~/.ssh/id_ed25519"
-            echo "  ./run-deploy.sh 192.168.1.100 -k ~/.ssh/key -n production"
-            echo "  ./run-deploy.sh 192.168.1.100 -k key -n prod --skip-onboard"
-            echo "  ./run-deploy.sh -k key -i hosts.ini  # Backward compatible"
+            echo "  ./cli/run-deploy.sh 192.168.1.100 -k ~/.ssh/id_ed25519"
+            echo "  ./cli/run-deploy.sh 192.168.1.100 -k ~/.ssh/key -n production"
+            echo "  ./cli/run-deploy.sh 192.168.1.100 -k key -n prod --skip-onboard"
+            echo "  ./cli/run-deploy.sh -k key -i hosts.ini  # Backward compatible"
             echo ""
             echo "Note: By default, 'openclaw onboard' launches automatically after deployment."
             echo "      Use --skip-onboard if you want to onboard later manually."
@@ -228,6 +235,12 @@ done
 if [ -z "$SSH_KEY" ]; then
     echo "Error: SSH key not provided. Use -k/--ssh-key or set SSH_PRIVATE_KEY_PATH"
     exit 1
+fi
+
+# Resolve SSH key path relative to original directory
+if [[ ! "$SSH_KEY" = /* ]]; then
+    # Relative path - resolve it from the original directory
+    SSH_KEY="$ORIGINAL_DIR/$SSH_KEY"
 fi
 
 if [ ! -f "$SSH_KEY" ]; then
@@ -250,7 +263,7 @@ if [ -n "$IP_ADDRESS" ]; then
 
     # Create temporary inventory file in instances directory
     mkdir -p ./instances
-    TEMP_INVENTORY="./instances/.temp-inventory-${INSTANCE_NAME}.ini"
+    TEMP_INVENTORY="../instances/.temp-inventory-${INSTANCE_NAME}.ini"
     cat > "$TEMP_INVENTORY" << EOF
 [servers]
 $IP_ADDRESS ansible_user=root
@@ -260,6 +273,12 @@ EOF
     echo "Generated temporary inventory for: $IP_ADDRESS"
     echo ""
 elif [ -n "$INVENTORY" ]; then
+    # Resolve inventory path relative to original directory
+    if [[ ! "$INVENTORY" = /* ]]; then
+        # Relative path - resolve it from the original directory
+        INVENTORY="$ORIGINAL_DIR/$INVENTORY"
+    fi
+
     # Using inventory file - validate it exists
     if [ ! -f "$INVENTORY" ]; then
         echo "Error: Inventory file not found: $INVENTORY"
@@ -269,8 +288,8 @@ else
     echo "Error: Either IP address or inventory file required"
     echo ""
     echo "Usage:"
-    echo "  ./run-deploy.sh <IP> -k <ssh-key>           # Using IP"
-    echo "  ./run-deploy.sh -k <ssh-key> -i <inventory> # Using inventory"
+    echo "  ./cli/run-deploy.sh <IP> -k <ssh-key>           # Using IP"
+    echo "  ./cli/run-deploy.sh -k <ssh-key> -i <inventory> # Using inventory"
     echo ""
     echo "Run with --help for more options"
     exit 1
@@ -294,7 +313,7 @@ if [ $ANSIBLE_EXIT_CODE -eq 0 ]; then
     echo "📝 Creating instance artifacts..."
 
     # Create instances directory if it doesn't exist
-    mkdir -p ./instances
+    mkdir -p ../instances
 
     # Parse inventory file to extract hosts
     # This handles simple INI format: "host ansible_host=ip" or just "ip"
@@ -326,7 +345,7 @@ if [ $ANSIBLE_EXIT_CODE -eq 0 ]; then
             ARTIFACT_INSTANCE_NAME="$INSTANCE_NAME_OVERRIDE"
         fi
 
-        ARTIFACT_FILE="./instances/${ARTIFACT_INSTANCE_NAME}.yml"
+        ARTIFACT_FILE="../instances/${ARTIFACT_INSTANCE_NAME}.yml"
         TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
         # Get absolute path of SSH key
@@ -372,7 +391,7 @@ EOF
     else
         echo ""
         echo "To complete setup, run:"
-        echo "   ./connect-instance.sh ${FINAL_INSTANCE_NAME} onboard"
+        echo "   ./cli/connect-instance.sh ${FINAL_INSTANCE_NAME} onboard"
     fi
 
 else

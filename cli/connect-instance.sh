@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Change to script directory (cli/) to ensure relative paths work
+cd "$(dirname "$0")"
+
 # Connect to RoboClaw instance and run OpenClaw commands
 #
 # Usage:
@@ -65,12 +68,12 @@ done
 # Determine connection details
 if [ -n "$INSTANCE_NAME" ]; then
     # Read from instance artifact
-    ARTIFACT="./instances/${INSTANCE_NAME}.yml"
+    ARTIFACT="../instances/${INSTANCE_NAME}.yml"
     if [ ! -f "$ARTIFACT" ]; then
         echo "Error: Instance artifact not found: $ARTIFACT"
         echo ""
         echo "Available instances:"
-        ls -1 ./instances/*.yml 2>/dev/null | xargs -n1 basename | sed 's/.yml$//' | sed 's/^/  - /'
+        ls -1 ../instances/*.yml 2>/dev/null | xargs -n1 basename | sed 's/.yml$//' | sed 's/^/  - /'
         exit 1
     fi
 

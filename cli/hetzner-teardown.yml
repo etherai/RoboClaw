@@ -101,7 +101,7 @@
 
     - name: Update instance artifact with deletion timestamp
       ansible.builtin.lineinfile:
-        path: "./instances/{{ target_server_name }}.yml"
+        path: "../instances/{{ target_server_name }}.yml"
         insertafter: "^    provisioned_at:"
         line: "    deleted_at: {{ ansible_date_time.iso8601 }}"
         state: present
@@ -111,7 +111,7 @@
 
     - name: Mark instance as deleted in artifact
       ansible.builtin.lineinfile:
-        path: "./instances/{{ target_server_name }}.yml"
+        path: "../instances/{{ target_server_name }}.yml"
         insertafter: "^    install_mode:"
         line: "    status: deleted"
         state: present
@@ -121,7 +121,7 @@
 
     - name: Rename artifact file to indicate deletion
       ansible.builtin.command:
-        cmd: mv "./instances/{{ target_server_name }}.yml" "./instances/{{ target_server_name }}_deleted.yml"
+        cmd: mv "../instances/{{ target_server_name }}.yml" "../instances/{{ target_server_name }}_deleted.yml"
       when: server_deleted.changed
       ignore_errors: true
       tags: [delete]

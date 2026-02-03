@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Change to script directory (cli/) to ensure relative paths work
+cd "$(dirname "$0")"
+
 # Function to check prerequisites
 check_prerequisites() {
     local errors=0
@@ -8,7 +11,7 @@ check_prerequisites() {
     echo "Checking prerequisites..."
 
     # Check if venv exists
-    if [ ! -d "venv" ]; then
+    if [ ! -d "../venv" ]; then
         echo "❌ Virtual environment not found"
         echo "   → Run: python3 -m venv venv"
         echo "   → Ensure you have Python 3.12+ installed"
@@ -88,8 +91,8 @@ check_prerequisites() {
 check_prerequisites
 
 # Activate virtualenv (already activated in check, but re-activate to be safe)
-if [ -d "venv" ]; then
-    source venv/bin/activate
+if [ -d "../venv" ]; then
+    source ../venv/bin/activate
 fi
 
 # Load environment variables from .env file
@@ -159,7 +162,7 @@ case "${1:-provision}" in
         shift
 
         # Read IP and SSH key from instance artifact
-        ARTIFACT="./instances/${INSTANCE_NAME}.yml"
+        ARTIFACT="../instances/${INSTANCE_NAME}.yml"
         if [ ! -f "$ARTIFACT" ]; then
             echo "Error: Instance artifact not found: $ARTIFACT"
             exit 1
@@ -212,7 +215,7 @@ case "${1:-provision}" in
         done
 
         # Read IP and SSH key from instance artifact
-        ARTIFACT="./instances/${INSTANCE_NAME}.yml"
+        ARTIFACT="../instances/${INSTANCE_NAME}.yml"
         if [ ! -f "$ARTIFACT" ]; then
             echo "Error: Instance artifact not found: $ARTIFACT"
             exit 1

@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Change to project root directory to ensure paths work correctly
+cd "$(dirname "$0")/.."
+
 # Automatic setup script for RoboClaw deployment
 # Checks for Python 3.12+, creates venv, installs dependencies
 

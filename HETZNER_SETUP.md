@@ -34,7 +34,7 @@ ansible-galaxy collection install -r hetzner-requirements.yml
 #    (See .env.example for format)
 
 # 2. Run the playbook (credentials loaded from .env automatically)
-./run-hetzner.sh
+./cli/cli/run-hetzner.sh
 
 # 3. Connect to your server (IP saved to finland-instance-ip.txt)
 ssh root@$(cat finland-instance-ip.txt)
