@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Script from 'next/script'
 import './globals.css'
 import Footer from '@/components/ui/Footer'
+import Navbar from '@/components/ui/Navbar'
 
 export const metadata: Metadata = {
   title: 'RoboClaw',
@@ -30,32 +31,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body className="antialiased flex flex-col min-h-screen">
-        <nav className="border-b border-white/10 bg-background/80 backdrop-blur-lg sticky top-0 z-50">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between h-16">
-              <a href="/" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-purple to-accent-blue">
-                RoboClaw
-              </a>
-              <div className="flex items-center gap-6">
-                <a href="/" className="text-gray-300 hover:text-white transition-colors">
-                  Home
-                </a>
-                <a href="/blog" className="text-gray-300 hover:text-white transition-colors">
-                  Blog
-                </a>
-                <a href="https://github.com/hintjen/roboclaw" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">
-                  GitHub
-                </a>
-                <a href="https://discord.gg/8DaPXhRFfv" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">
-                  Discord
-                </a>
-                <a href="https://x.com/RoboClawX" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">
-                  Follow on X
-                </a>
-              </div>
-            </div>
-          </div>
-        </nav>
+        <Navbar />
         <main className="flex-1">
           {children}
         </main>
