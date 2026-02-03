@@ -1,6 +1,6 @@
 'use client'
 
-import { type Instance } from '@/lib/types'
+import { type Instance } from '@/types'
 import Badge from './Badge'
 import Button from './Button'
 import { Copy, Server, CheckCircle2, AlertCircle, Terminal, Trash2, Loader2, Plug, Unplug, RefreshCw, ExternalLink, Power, MoreVertical } from 'lucide-react'

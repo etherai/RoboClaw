@@ -35,7 +35,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="https://github.com/etherai/roboclaw"
+                  href="https://github.com/hintjen/roboclaw"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-gray-400 hover:text-accent-purple transition-colors"

@@ -1,6 +1,9 @@
+'use client'
+
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import { Server, Shield, Cpu, Globe, Zap, Code, MessageCircle, Users, Github, Lock, History, Vault, Eye, FileCheck, Network } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
 
 export default function Home() {
   return (
@@ -16,16 +19,16 @@ export default function Home() {
         <div className="container mx-auto px-4 py-16 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-block px-4 py-2 mb-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-sm text-gray-300">
-              Powered by OpenClaw
+              Powered by ClawFleet and OpenClaw
             </div>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-gray-400">
-              Your personal AI, connected to everything you use
+              Launch OpenClaw Without Getting Pinched
             </h1>
             <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto">
-              RoboClaw brings enterprise-grade security to OpenClaw—cryptographic auditing, time-machine rollback, and vault-native secrets. Deploy community workflows or integrate with your tools in minutes.
+              Deploy your own OpenClaw in minutes. Free, secure, and fully reversible.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="https://github.com/etherai/roboclaw" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/hintjen/roboclaw" target="_blank" rel="noopener noreferrer">
                 <Button size="lg" className="min-w-[200px] flex items-center gap-2">
                   <Github className="w-5 h-5" />
                   View on GitHub
@@ -39,26 +42,70 @@ export default function Home() {
               </a>
             </div>
 
-            {/* Terminal Mockup */}
-            <div className="mt-16 max-w-3xl mx-auto">
-              <div className="bg-terminal-bg rounded-lg shadow-2xl border border-white/10 overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/5">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  </div>
-                  <span className="text-sm text-gray-400 ml-2">roboclaw-deploy</span>
+            {/* Terminal Mockup with Tabs */}
+            <TabbedTerminal />
+          </div>
+        </div>
+      </section>
+
+      {/* Get Started CTAs */}
+      <section className="py-24 relative bg-white/[0.02]">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center mb-16">Get Started</h2>
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Primary CTA */}
+            <div className="bg-gradient-to-br from-accent-purple/10 to-accent-blue/10 backdrop-blur-lg border border-accent-purple/30 rounded-2xl p-8 relative overflow-hidden hover:border-accent-purple/50 transition-all">
+              <div className="absolute -top-20 -right-20 w-64 h-64 bg-accent-purple/20 rounded-full blur-3xl"></div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-4">
+                  <Server className="w-6 h-6 text-accent-purple" />
+                  <span className="text-xs font-semibold text-accent-purple uppercase tracking-wider">Recommended</span>
                 </div>
-                <div className="p-4 font-mono text-sm space-y-1">
-                  <div className="text-gray-500">[12:34:56]</div>
-                  <div className="text-terminal-command">$ Provisioning VPS...</div>
-                  <div className="text-terminal-success">✓ Server created (IP: 65.21.149.78)</div>
-                  <div className="text-terminal-command">$ Installing Docker CE...</div>
-                  <div className="text-terminal-success">✓ Docker installed</div>
-                  <div className="text-terminal-command">$ Installing RoboClaw...</div>
-                  <div className="text-terminal-success">✓ Deployment completed in 127s</div>
-                  <div className="text-white mt-2 animate-pulse">▊</div>
+                <h3 className="text-2xl font-bold mb-3">Deploy OpenClaw to Your VPS via SSH</h3>
+                <p className="text-gray-400 mb-6 leading-relaxed">
+                  Bring your own server and get full control. RoboClaw deploys OpenClaw to any VPS using SSH and Ansible—just provide your server credentials and we'll handle the installation, configuration, and setup automatically. Works with any cloud provider: AWS, DigitalOcean, Linode, Hetzner, or even your home server.
+                </p>
+                <a href="https://github.com/hintjen/roboclaw" target="_blank" rel="noopener noreferrer">
+                  <Button className="w-full mb-4 flex items-center justify-center gap-2">
+                    <Github className="w-5 h-5" />
+                    Deploy via SSH →
+                  </Button>
+                </a>
+                <div className="text-sm text-gray-500 space-y-1">
+                  <p className="flex items-center gap-2">
+                    <span className="text-accent-purple">✓</span>
+                    Your data stays on your server
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="text-accent-purple">✓</span>
+                    Your secrets stay on your computer
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="text-accent-purple">✓</span>
+                    No vendor lock-in
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Secondary CTA - Coming Soon */}
+            <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-8 relative overflow-hidden opacity-75">
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-4">
+                  <Zap className="w-6 h-6 text-gray-400" />
+                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Coming Soon</span>
+                </div>
+                <h3 className="text-2xl font-bold mb-3">RoboClaw Cloud</h3>
+                <p className="text-gray-400 mb-6 leading-relaxed">
+                  Want zero infrastructure hassle? Deploy OpenClaw on RoboClaw's managed cloud—no VPS required, no SSH setup, no server maintenance. Just sign up and start building.
+                </p>
+                <Button variant="secondary" className="w-full" disabled>
+                  Coming Soon
+                </Button>
+                <div className="mt-6 p-3 bg-white/5 border border-white/10 rounded-lg">
+                  <p className="text-xs text-gray-400">
+                    Join our <a href="https://discord.gg/8DaPXhRFfv" target="_blank" rel="noopener noreferrer" className="text-accent-purple hover:text-accent-blue transition-colors">Discord</a> to be notified when RoboClaw Cloud launches
+                  </p>
                 </div>
               </div>
             </div>
@@ -66,64 +113,76 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Three Pillars Section */}
+      {/* Four Pillars Section */}
       <section className="py-24 relative">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-24">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto mb-24">
             <ValuePropCard
               icon={<Zap className="w-10 h-10" />}
               title="Fast"
-              subtitle="Community Workflows"
-              description="Deploy battle-tested OpenClaw configurations in one command. Every workflow leverages OpenClaw's native multi-agent routing and tool execution."
+              subtitle="Ready-to-Use Templates"
+              description="Get started instantly with pre-configured OpenClaw setups from the community. Deploy popular use cases with one command."
               badge="Powered by OpenClaw's skill system"
+            />
+            <ValuePropCard
+              icon={<Shield className="w-10 h-10" />}
+              title="Always Updated"
+              subtitle="Automatic Security Patches"
+              description="RoboClaw keeps your OpenClaw deployment secure with automatic updates and security patches. Never worry about vulnerabilities or falling behind—your instance stays current without any manual intervention."
+              badge="Set it and forget it"
             />
             <ValuePropCard
               icon={<Lock className="w-10 h-10" />}
               title="Secure"
-              subtitle="Vault-Native Secrets"
-              description="Your API keys never leave your infrastructure. Built-in secret storage, access proxy, and zero-trust architecture. Extends OpenClaw's security model."
-              badge="SOC2-ready audit logs"
+              subtitle="Your Secrets Never Leave Your Computer"
+              description="Your passwords and API keys stay on your local computer. RoboClaw Companion Desktop (coming soon) provides a secure API proxy and audit layer that keeps you safe and in control."
+              badge="Enterprise-grade protection"
             />
             <ValuePropCard
               icon={<History className="w-10 h-10" />}
               title="Reversible"
-              subtitle="Time-Machine Rollback"
-              description="BTRFS snapshots every OpenClaw configuration change. Rollback any mistake instantly. Cryptographic proof of every action your AI took."
-              badge="Integrates with OpenClaw gateway"
+              subtitle="Experiment Safely"
+              description="Try anything without worry! Made a mistake? Roll back to a working state with one click. See exactly what your AI agents did and when."
+              badge="Time-travel for your AI agents"
             />
           </div>
 
-          <h2 className="text-4xl font-bold text-center mb-16">Enterprise Security for OpenClaw</h2>
+          <h2 className="text-4xl font-bold text-center mb-16">Safety & Control Features</h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <FeatureCard
               icon={<FileCheck className="w-8 h-8" />}
-              title="Cryptographic Auditing"
-              description="Every OpenClaw action logged and signed. Immutable audit trail for compliance."
+              title="Complete Activity Log"
+              description="See everything your AI agents do, every single action recorded and timestamped. Perfect for keeping track of what happened."
             />
             <FeatureCard
               icon={<History className="w-8 h-8" />}
-              title="BTRFS Snapshots"
-              description="Time-machine for OpenClaw deployments. Restore to any point in history."
+              title="Safe Experimentation"
+              description="Try new things without worry! Your AI agents' setup is automatically saved, so you can always get back to a working state. Experiment freely and roll back anytime."
             />
             <FeatureCard
               icon={<Vault className="w-8 h-8" />}
-              title="Secret Vault"
-              description="Encrypted credential storage for OpenClaw skills. Decrypted only in memory."
-            />
-            <FeatureCard
-              icon={<Network className="w-8 h-8" />}
-              title="Access Proxy"
-              description="Zero-trust layer for OpenClaw tool execution. Every API call authenticated."
+              title="Protected Passwords"
+              description="Your sensitive information is encrypted and stored safely. Your credentials never touch the internet unprotected."
             />
             <FeatureCard
               icon={<Shield className="w-8 h-8" />}
-              title="Workflow Verification"
-              description="Community OpenClaw configs cryptographically signed. Verify before deploy."
+              title="Automatic Security Updates"
+              description="RoboClaw continuously monitors and applies security patches to your OpenClaw instance. Stay protected against vulnerabilities without lifting a finger."
+            />
+            <FeatureCard
+              icon={<Network className="w-8 h-8" />}
+              title="Secure Connection Layer"
+              description="Every action your AI agents take goes through a protective layer that keeps the bad guys out."
+            />
+            <FeatureCard
+              icon={<Shield className="w-8 h-8" />}
+              title="Verified Templates"
+              description="Community templates are checked and verified before you can use them. Know exactly what you're installing."
             />
             <FeatureCard
               icon={<Eye className="w-8 h-8" />}
-              title="Transparent Reasoning"
-              description="OpenClaw's AI thinking, visible. See confidence scores and decision rationale."
+              title="See Your AI Agents Think"
+              description="Watch your AI agents' thought process in real-time. Understand why they make each decision."
             />
           </div>
         </div>
@@ -133,9 +192,9 @@ export default function Home() {
       <section className="py-24 relative bg-white/[0.02]">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Community OpenClaw Workflows</h2>
+            <h2 className="text-4xl font-bold mb-4">Community Marketplace</h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Deploy verified OpenClaw configurations curated by the community. Every workflow is cryptographically signed and audited.
+              Browse workflows, plugins, and skills curated by the OpenClaw community. Everything is tested, verified, and ready to use. Just pick what you need from the marketplace and start using it right away.
             </p>
           </div>
 
@@ -145,23 +204,23 @@ export default function Home() {
               title="AI Code Review Assistant"
               author="@anthropic-community"
               deploys="4,823"
-              description="Uses OpenClaw's tool execution to review PRs, suggest fixes, and catch bugs"
+              description="Automatically reviews your code, suggests improvements, and catches bugs before they become problems"
               integrations={["GitHub", "Linear", "Slack"]}
-              security={["GitHub token in vault", "Cryptographic audit of PR comments", "Rollback any config change"]}
+              security={["Secure password storage", "Full activity history", "Easy rollback"]}
             />
             <WorkflowCard
               icon="⭐"
               title="Customer Support Agent"
               author="@zendesk-ai"
               deploys="3,291"
-              description="Uses OpenClaw's multi-channel gateway to respond via Slack and search Zendesk"
+              description="Responds to customer questions on Slack and finds answers in your knowledge base"
               integrations={["Slack", "Zendesk", "Knowledge Base"]}
-              security={["Slack/Zendesk tokens in vault", "Access proxy for API calls", "Audit log of interactions"]}
+              security={["Tokens stored safely", "Protected connections", "Complete interaction log"]}
             />
           </div>
 
           <div className="text-center">
-            <a href="https://github.com/etherai/roboclaw#workflows" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/hintjen/roboclaw#workflows" target="_blank" rel="noopener noreferrer">
               <Button variant="secondary" size="lg">
                 Browse All Workflows →
               </Button>
@@ -206,70 +265,24 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-6">How It Works</h2>
           <p className="text-center text-gray-400 mb-16 max-w-2xl mx-auto">
-            Deploy production-ready OpenClaw with enterprise security in three steps
+            Get your personal OpenClaw instance up and running in three simple steps
           </p>
           <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8">
             <StepCard
               number={1}
-              title="Deploy OpenClaw"
-              description="One command deploys OpenClaw with BTRFS snapshots, cryptographic auditing, and secret vault—all configured and ready"
+              title="Deploy Your Personal OpenClaw"
+              description="One simple command deploys your own OpenClaw instance—automatic backups, activity logging, and secure password storage all configured and ready"
             />
             <StepCard
               number={2}
-              title="Choose Integration"
-              description="Deploy a community workflow (Slack bot, GitHub integration) or connect your own tools using OpenClaw's skill system"
+              title="Browse the Marketplace"
+              description="Explore workflows, plugins, and skills curated by the OpenClaw community. Pick what you need from the marketplace—whether it's a Slack bot, GitHub helper, or custom automation"
             />
             <StepCard
               number={3}
-              title="Monitor & Rollback"
-              description="Watch OpenClaw's AI reasoning in real-time. RoboClaw snapshots every change—rollback anytime with one click"
+              title="Stay in Control"
+              description="Watch what your AI agents are thinking in real-time. Everything gets saved automatically—experiment freely and undo any mistake with one click"
             />
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section className="py-24 relative">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-center text-gray-400 mb-12">Pay only for your infrastructure. RoboClaw and OpenClaw are free and open source.</p>
-
-          <div className="max-w-md mx-auto">
-            <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-8 text-center">
-              <div className="inline-block px-3 py-1 bg-accent-purple/20 border border-accent-purple/30 rounded-full text-xs text-accent-purple mb-4">
-                Recommended Configuration
-              </div>
-              <h3 className="text-3xl font-bold mb-2">€3.29/month</h3>
-              <p className="text-sm text-gray-400 mb-6">Hetzner Cloud CAX11</p>
-              <div className="space-y-2 text-gray-400 mb-6 pb-6 border-b border-white/10">
-                <p>2 vCPU (ARM64)</p>
-                <p>4GB RAM</p>
-                <p>40GB SSD (BTRFS)</p>
-                <p>20TB Bandwidth</p>
-              </div>
-              <div className="space-y-2 text-sm text-gray-400 mb-6">
-                <p className="flex items-center justify-center gap-2">
-                  <span className="text-accent-purple">✓</span>
-                  OpenClaw pre-installed
-                </p>
-                <p className="flex items-center justify-center gap-2">
-                  <span className="text-accent-purple">✓</span>
-                  Cryptographic auditing enabled
-                </p>
-                <p className="flex items-center justify-center gap-2">
-                  <span className="text-accent-purple">✓</span>
-                  Time-machine snapshots ready
-                </p>
-                <p className="flex items-center justify-center gap-2">
-                  <span className="text-accent-purple">✓</span>
-                  Secret vault configured
-                </p>
-              </div>
-              <p className="text-xs text-gray-500 mb-6">Direct Hetzner pricing. Zero markup.</p>
-              <a href="https://github.com/etherai/roboclaw" target="_blank" rel="noopener noreferrer" className="block">
-                <Button className="w-full">Get Started on GitHub</Button>
-              </a>
-            </div>
           </div>
         </div>
       </section>
@@ -277,8 +290,8 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-white/10 py-12">
         <div className="container mx-auto px-4 text-center text-gray-500 text-sm">
-          <p className="mb-2">Made with Love with <a href="https://github.com/etherai/openclaw" target="_blank" rel="noopener noreferrer" className="text-accent-purple hover:text-accent-blue transition-colors">OpenClaw</a></p>
-          <p className="text-gray-600">Built with Next.js. Servers powered by Hetzner Cloud.</p>
+          <p className="mb-2">RoboClaw: Powered by <span className="text-accent-blue">ClawFleet</span> and <a href="https://github.com/etherai/openclaw" target="_blank" rel="noopener noreferrer" className="text-accent-purple hover:text-accent-blue transition-colors">OpenClaw</a>. Deploying OpenClaw since 2026.</p>
+          <p className="text-gray-600">Made with Love by <a href="https://github.com/hintjen" target="_blank" rel="noopener noreferrer" className="text-accent-purple hover:text-accent-blue transition-colors">Hintjen</a>.</p>
         </div>
       </footer>
     </main>
@@ -395,6 +408,344 @@ function StepCard({ number, title, description }: { number: number; title: strin
       </div>
       <h3 className="text-xl font-semibold mb-2">{title}</h3>
       <p className="text-gray-400 text-sm">{description}</p>
+    </div>
+  )
+}
+
+function TabbedTerminal() {
+  const [activeTab, setActiveTab] = useState<'cli' | 'ui'>('ui')
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [typedHost, setTypedHost] = useState('')
+  const [typedUser, setTypedUser] = useState('')
+  const [showKey, setShowKey] = useState(false)
+  const [deploymentStep, setDeploymentStep] = useState(0)
+
+  // Auto-progress slides
+  useEffect(() => {
+    if (activeTab !== 'ui') return
+
+    const timer = setTimeout(() => {
+      setCurrentSlide((prev) => (prev + 1) % 4)
+      // Reset animations when looping back
+      if (currentSlide === 3) {
+        setTypedHost('')
+        setTypedUser('')
+        setShowKey(false)
+        setDeploymentStep(0)
+      }
+    }, currentSlide === 1 ? 5000 : 4000) // Longer duration for deployment slide
+
+    return () => clearTimeout(timer)
+  }, [currentSlide, activeTab])
+
+  // Simulate typing for slide 1
+  useEffect(() => {
+    if (currentSlide !== 0 || activeTab !== 'ui') return
+
+    const hostText = '65.21.149.78'
+    const userText = 'root'
+
+    // Type host
+    const hostTimer = setTimeout(() => {
+      if (typedHost.length < hostText.length) {
+        setTypedHost(hostText.slice(0, typedHost.length + 1))
+      } else if (typedUser.length < userText.length) {
+        setTypedUser(userText.slice(0, typedUser.length + 1))
+      } else if (!showKey) {
+        setShowKey(true)
+      }
+    }, 100)
+
+    return () => clearTimeout(hostTimer)
+  }, [currentSlide, typedHost, typedUser, showKey, activeTab])
+
+  // Animate deployment steps for slide 2
+  useEffect(() => {
+    if (currentSlide !== 1 || activeTab !== 'ui') return
+
+    const timer = setTimeout(() => {
+      if (deploymentStep < 4) {
+        setDeploymentStep(deploymentStep + 1)
+      }
+    }, 1000) // Each step takes 1 second
+
+    return () => clearTimeout(timer)
+  }, [currentSlide, deploymentStep, activeTab])
+
+  const slides = [
+    {
+      title: 'Enter SSH Credentials',
+      content: (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">SSH Host</label>
+            <div className="relative">
+              <input
+                type="text"
+                value={typedHost}
+                readOnly
+                className="w-full px-4 py-2 bg-white/5 border border-accent-purple/50 rounded-lg text-white focus:outline-none"
+              />
+              {typedHost.length > 0 && typedHost.length < 13 && (
+                <span className="absolute right-4 top-2 animate-pulse text-white">|</span>
+              )}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Username</label>
+            <div className="relative">
+              <input
+                type="text"
+                value={typedUser}
+                readOnly
+                className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none"
+                style={{ borderColor: typedHost.length === 13 ? 'rgb(168, 85, 247, 0.5)' : 'rgb(255, 255, 255, 0.2)' }}
+              />
+              {typedHost.length === 13 && typedUser.length > 0 && typedUser.length < 4 && (
+                <span className="absolute right-4 top-2 animate-pulse text-white">|</span>
+              )}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Authentication</label>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <div className="px-4 py-2 bg-accent-purple/20 border border-accent-purple rounded-lg text-sm text-accent-purple">
+                  SSH Key
+                </div>
+                <div className="px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-gray-400">
+                  Password
+                </div>
+              </div>
+              {showKey && (
+                <div className="animate-fade-in">
+                  <textarea
+                    value="-----BEGIN OPENSSH PRIVATE KEY-----&#10;b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAG..."
+                    readOnly
+                    rows={3}
+                    className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-gray-400 text-xs font-mono focus:outline-none"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: 'Deploying OpenClaw',
+      content: (
+        <div className="space-y-6 py-8">
+          <div className="text-center mb-8">
+            <h3 className="text-xl font-semibold text-white mb-2">Deploying to your server</h3>
+            <p className="text-sm text-gray-400">This will take a few moments...</p>
+          </div>
+          <div className="space-y-4 max-w-md mx-auto">
+            {[
+              { label: 'Verify host connectivity', step: 1 },
+              { label: 'Provisioning OpenClaw', step: 2 },
+              { label: 'Verifying OpenClaw deployment', step: 3 },
+              { label: 'Done', step: 4 }
+            ].map((item) => (
+              <div
+                key={item.step}
+                className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                  deploymentStep >= item.step
+                    ? 'bg-white/5 border-accent-purple/30'
+                    : 'bg-white/[0.02] border-white/10'
+                }`}
+              >
+                <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                  deploymentStep >= item.step
+                    ? 'bg-accent-purple'
+                    : 'bg-white/10'
+                }`}>
+                  {deploymentStep >= item.step ? (
+                    <svg className="w-4 h-4 text-white animate-scale-in" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <div className="w-2 h-2 bg-white/30 rounded-full"></div>
+                  )}
+                </div>
+                <span className={`text-sm transition-colors ${
+                  deploymentStep >= item.step ? 'text-white' : 'text-gray-500'
+                }`}>
+                  {item.label}
+                </span>
+                {deploymentStep === item.step && deploymentStep < 4 && (
+                  <div className="ml-auto flex gap-1">
+                    <div className="w-1.5 h-1.5 bg-accent-purple rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-1.5 h-1.5 bg-accent-purple rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-1.5 h-1.5 bg-accent-purple rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    },
+    {
+      title: 'Connect Integrations',
+      content: (
+        <div className="space-y-6 animate-fade-in">
+          {/* Provider Tabs */}
+          <div className="flex items-center justify-center gap-2 pb-4 border-b border-white/10">
+            <div className="flex gap-2 flex-wrap justify-center">
+              <div className="px-4 py-2 bg-gradient-to-r from-green-500/20 to-green-600/20 border-2 border-green-500 rounded-lg text-sm font-medium text-green-400 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                </svg>
+                WhatsApp
+              </div>
+              <div className="px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-gray-500">
+                Matrix
+              </div>
+              <div className="px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-gray-500">
+                Discord
+              </div>
+              <div className="px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-gray-500">
+                Slack
+              </div>
+              <div className="px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-gray-500">
+                Telegram
+              </div>
+            </div>
+          </div>
+
+          {/* WhatsApp QR Code Content */}
+          <div className="text-center">
+            <div className="inline-block p-6 bg-white rounded-lg shadow-lg">
+              <div className="w-48 h-48 bg-black flex items-center justify-center">
+                <div className="grid grid-cols-3 gap-1 animate-pulse">
+                  {Array.from({ length: 9 }).map((_, i) => (
+                    <div key={i} className="w-3 h-3 bg-white rounded-sm"></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2 mt-6">
+              <h3 className="text-lg font-semibold text-white">Scan QR Code with WhatsApp</h3>
+              <p className="text-sm text-gray-400">Open WhatsApp on your phone and scan this code</p>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-sm mt-4">
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-accent-blue rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-accent-blue rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-accent-blue rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+              <span className="text-gray-400">Connecting...</span>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: 'Success!',
+      content: (
+        <div className="space-y-6 text-center py-8 animate-fade-in">
+          <div className="flex justify-center">
+            <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center animate-scale-in">
+              <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-2xl font-bold text-white">OpenClaw Deployed!</h3>
+            <p className="text-gray-400">Your personal AI agent platform is ready</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-3">
+            <div className="flex items-center justify-center gap-2 text-sm">
+              <span className="text-gray-400">Dashboard:</span>
+              <span className="text-accent-blue font-mono">https://65.21.149.78:3000</span>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-sm text-green-500">
+              <span>✓</span>
+              WhatsApp Connected
+            </div>
+            <div className="pt-3 border-t border-white/10">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-accent-purple/20 to-accent-blue/20 border border-accent-purple/30 rounded-lg text-sm text-accent-purple">
+                <span>→</span>
+                Configure my OpenClaw
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+  ]
+
+  return (
+    <div className="mt-16 max-w-3xl mx-auto">
+      <div className="bg-terminal-bg rounded-lg shadow-2xl border border-white/10 overflow-hidden">
+        {/* Tabs */}
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/5">
+          <div className="flex gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          </div>
+          <div className="flex gap-2 ml-4">
+            <button
+              onClick={() => setActiveTab('ui')}
+              className={`px-3 py-1 text-sm rounded transition-colors ${
+                activeTab === 'ui'
+                  ? 'bg-white/10 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              RoboClaw UI
+            </button>
+            <button
+              onClick={() => setActiveTab('cli')}
+              className={`px-3 py-1 text-sm rounded transition-colors ${
+                activeTab === 'cli'
+                  ? 'bg-white/10 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              CLI Deploy
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-8">
+          {activeTab === 'cli' ? (
+            <div className="font-mono text-sm space-y-1">
+              <div className="text-gray-500">[12:34:56]</div>
+              <div className="text-terminal-command">$ roboclaw deploy --ssh user@65.21.149.78</div>
+              <div className="text-terminal-success">✓ Connected via SSH</div>
+              <div className="text-terminal-command">$ Running Ansible playbook...</div>
+              <div className="text-terminal-success">✓ OpenClaw installed</div>
+              <div className="text-terminal-success">✓ RoboClaw features configured</div>
+              <div className="text-terminal-success">✓ Your personal OpenClaw is ready!</div>
+              <div className="text-white mt-2">🎉 Dashboard: https://65.21.149.78:3000</div>
+              <div className="text-white mt-2 animate-pulse">▊</div>
+            </div>
+          ) : (
+            <div className="min-h-[400px]">
+              {slides[currentSlide].content}
+
+              {/* Carousel Indicators */}
+              <div className="flex items-center justify-center gap-2 mt-8">
+                {slides.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`h-1 rounded-full transition-all ${
+                      currentSlide === index
+                        ? 'w-8 bg-accent-purple'
+                        : 'w-2 bg-white/20'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
