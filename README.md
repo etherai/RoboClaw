@@ -96,7 +96,7 @@ RoboClaw is being built live in the OpenClaw Discord community. Join us in the v
 **Links:**
 - **Discord**: [discord.gg/8DaPXhRFfv](https://discord.gg/8DaPXhRFfv) — Join the voice chat!
 - **GitHub**: [github.com/hintjen/roboclaw](https://github.com/hintjen/roboclaw)
-- **Website**: [roboclaw.dev](https://roboclaw.dev)
+- **Website**: [roboclaw.dev](https://roboclaw.ai)
 
 ## Coming Soon
 
@@ -106,13 +106,11 @@ RoboClaw is being built live in the OpenClaw Discord community. Join us in the v
 
 ## Documentation
 
-For detailed technical documentation, see:
-- **PROVISION.md** — Detailed provisioning documentation and architecture
-- **roboclaw/** — OpenClaw source code (submodule)
+Coming soon
 
 ## License
 
-See roboclaw/ for OpenClaw licensing.
+MIT
 
 ## Support
 
