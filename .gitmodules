@@ -1,6 +1,0 @@
-[submodule "clawdbot-ansible"]
-	path = clawdbot-ansible
-	url = https://github.com/openclaw/clawdbot-ansible.git
-[submodule "openclaw"]
-	path = openclaw
-	url = https://github.com/openclaw/openclaw.git
