@@ -28,7 +28,7 @@ export default function Home() {
                   View on GitHub
                 </Button>
               </a>
-              <a href="https://discord.gg/6ccxYf3c6q" target="_blank" rel="noopener noreferrer">
+              <a href="https://discord.gg/8DaPXhRFfv" target="_blank" rel="noopener noreferrer">
                 <Button variant="secondary" size="lg" className="min-w-[200px] flex items-center gap-2">
                   <MessageCircle className="w-5 h-5" />
                   Join Discord
@@ -121,7 +121,7 @@ export default function Home() {
                 <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
                   Get help, share tips, and connect with other RoboClaw users in our Discord server
                 </p>
-                <a href="https://discord.gg/6ccxYf3c6q" target="_blank" rel="noopener noreferrer">
+                <a href="https://discord.gg/8DaPXhRFfv" target="_blank" rel="noopener noreferrer">
                   <Button size="lg" className="bg-[#5865F2] hover:bg-[#4752C4] text-white min-w-[200px] flex items-center gap-2 mx-auto">
                     <MessageCircle className="w-5 h-5" />
                     Join Discord
