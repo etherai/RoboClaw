@@ -46,3 +46,13 @@ wheels/
 # Logs
 *.log
 deployment-logs/
+
+# Node.js
+node_modules/
+package-lock.json
+
+# TypeScript build output (already covered by dist/ above)
+*.tsbuildinfo
+
+# Instance artifacts (local deployment metadata)
+instances/*.yml

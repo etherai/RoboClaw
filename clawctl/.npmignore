@@ -1,0 +1,51 @@
+# Source files (not needed in published package)
+src/
+tsconfig.json
+*.ts
+
+# Documentation and specs
+specs/
+TODO-clawctl-v1.md
+IMPLEMENTATION-PROMPT.md
+PROVISION.md
+HETZNER_SETUP.md
+available-server-types.txt
+
+# Legacy tooling
+cli/
+clawdbot-ansible/
+venv/
+
+# Website (separate from CLI package)
+website/
+
+# Development files
+.git/
+.gitignore
+.gitmodules
+.env
+.env.example
+test-inventory.ini
+
+# SSH keys and credentials
+ssh-keys/
+*.pem
+*_key
+*_key.pub
+hetzner_key*
+
+# Instance artifacts (local only)
+instances/
+
+# Build artifacts
+node_modules/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Claude context
+.claude/
