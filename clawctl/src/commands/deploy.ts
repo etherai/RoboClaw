@@ -12,6 +12,7 @@ import * as imageBuilder from '../lib/image-builder.js'
 import * as compose from '../lib/compose.js'
 import * as interactive from '../lib/interactive.js'
 import * as artifact from '../lib/artifact.js'
+import * as autoConnect from '../lib/auto-connect.js'
 import { loadConfig, validateIP, validateSSHKey } from '../lib/config.js'
 import fs from 'fs/promises'
 
@@ -109,6 +110,49 @@ export async function deployCommand(flags: any): Promise<void> {
     }
 
     logger.success('Root access verified')
+
+    // ====================================================================
+    // Clean Deployment (if requested)
+    // ====================================================================
+    if (config.clean) {
+      logger.blank()
+      logger.warn('⚠️  Clean deployment requested')
+      logger.blank()
+      logger.log('This will remove:')
+      logger.log('  - All Docker containers and images')
+      logger.log('  - roboclaw user and all files')
+      logger.log('  - Deployment state')
+      logger.blank()
+
+      // TODO: Add confirmation prompt in future
+      // For now, proceed automatically if --clean is specified
+
+      logger.info('Cleaning previous deployment...')
+
+      // Stop and remove all containers
+      await ssh.exec('docker ps -aq | xargs -r docker stop 2>/dev/null || true')
+      await ssh.exec('docker ps -aq | xargs -r docker rm 2>/dev/null || true')
+      logger.verbose('Stopped and removed all containers')
+
+      // Remove OpenClaw images
+      await ssh.exec('docker images -q "roboclaw/openclaw:local" "openclaw:local" | xargs -r docker rmi 2>/dev/null || true')
+      logger.verbose('Removed OpenClaw Docker images')
+
+      // Remove roboclaw user and home directory
+      await ssh.exec('userdel -r roboclaw 2>/dev/null || true')
+      logger.verbose('Removed roboclaw user and home directory')
+
+      // Remove any remaining directories
+      await ssh.exec('rm -rf /root/docker /root/openclaw-build 2>/dev/null || true')
+      logger.verbose('Removed remaining directories')
+
+      // Delete state file
+      await ssh.exec('rm -f /root/.clawctl-deploy-state.json /home/roboclaw/.clawctl-deploy-state.json 2>/dev/null || true')
+      logger.verbose('Deleted deployment state files')
+
+      logger.success('Cleanup complete')
+      logger.blank()
+    }
 
     // Check for partial deployment
     let existingState = await state.detectPartialDeployment(ssh)
@@ -253,21 +297,44 @@ export async function deployCommand(flags: any): Promise<void> {
     }
 
     // ====================================================================
-    // Phase 8: Start Gateway & Run Onboarding
+    // Phase 8: Onboarding & Gateway Startup
     // ====================================================================
+    let gatewayToken: string | null = null
+
     if (!existingState || !state.isPhaseComplete(existingState, 8)) {
-      logger.phase(8, 'Gateway Startup & Onboarding')
+      logger.phase(8, 'Onboarding & Gateway Startup')
 
-      // Start gateway FIRST (onboarding needs to connect to it)
-      await interactive.startGateway(ssh, deployUser)
-
-      // Then run onboarding (which can now connect to the gateway)
+      // Step 1: Run onboarding FIRST (generates token in config)
       await interactive.runOnboarding(ssh, deployUser, config.skipOnboard)
+
+      // Step 2: Extract token from config (if onboarding was completed)
+      gatewayToken = await interactive.extractGatewayToken(ssh, deployUser)
+
+      if (gatewayToken) {
+        logger.success('Gateway token extracted')
+
+        // Step 3: Stop gateway if running (to ensure clean state)
+        await ssh.exec(`cd ${deployUser.home}/docker && sudo -u ${deployUser.username} docker compose stop openclaw-gateway 2>/dev/null || true`)
+        logger.verbose('Stopped any existing gateway container')
+
+        // Step 4: Update .env with the token
+        await compose.updateEnvToken(ssh, deployUser, gatewayToken)
+        logger.success('Updated .env with gateway token')
+
+        // Step 5: Start gateway with correct token
+        await interactive.startGateway(ssh, deployUser)
+      } else {
+        logger.warn('No token found - gateway may not start properly')
+        logger.info('Complete onboarding manually if needed')
+      }
 
       await state.updateState(ssh, 8, 'complete')
     } else {
-      logger.phase(8, 'Gateway Startup & Onboarding')
+      logger.phase(8, 'Onboarding & Gateway Startup')
       logger.dim('  (skip - already complete)')
+
+      // Extract token for final output even on skip
+      gatewayToken = await interactive.extractGatewayToken(ssh, deployUser)
     }
 
     // ====================================================================
@@ -288,7 +355,14 @@ export async function deployCommand(flags: any): Promise<void> {
     logger.success('Deployment state cleaned up')
 
     // Display success message
-    logger.deploymentComplete(config.instanceName, config.ip)
+    logger.deploymentComplete(config.instanceName, config.ip, 18789, gatewayToken || undefined)
+
+    // ====================================================================
+    // Auto-Connect (Optional)
+    // ====================================================================
+    if (!config.noAutoConnect) {
+      await autoConnect.autoConnect(ssh, config.ssh, deployUser, 18789)
+    }
 
   } catch (error) {
     logger.blank()

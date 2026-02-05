@@ -4,9 +4,9 @@
 
 This document specifies the technical implementation of the `clawctl` npm package, a CLI tool for deploying OpenClaw to remote servers via Docker containers.
 
-**Last Updated:** 2026-02-04
-**Version:** 1.0 (Draft)
-**Status:** Proposed
+**Last Updated:** 2026-02-05
+**Version:** 1.0.1 (Implemented)
+**Status:** Active
 
 ## Table of Contents
 
@@ -121,6 +121,7 @@ npx clawctl <ip> [options]
 | `--port <port>` | `-p` | number | SSH port | `22` |
 | `--branch <branch>` | `-b` | string | OpenClaw git branch | `main` |
 | `--skip-onboard` | - | boolean | Skip onboarding wizard | `false` |
+| `--no-auto-connect` | - | boolean | Skip auto-connect to dashboard | `false` |
 | `--global` | `-g` | boolean | Save artifact to ~/.clawctl/instances/ | `false` |
 | `--force` | `-f` | boolean | Ignore partial deployment, start fresh | `false` |
 | `--clean` | - | boolean | Remove everything and start fresh | `false` |
@@ -159,6 +160,11 @@ npx clawctl 192.168.1.100 -k ./mykey --skip-onboard
 **Verbose mode (for debugging):**
 ```bash
 npx clawctl 192.168.1.100 -k ./mykey -v
+```
+
+**Skip auto-connect (for CI/CD):**
+```bash
+npx clawctl 192.168.1.100 -k ./mykey --no-auto-connect
 ```
 
 ## Architecture
@@ -1173,24 +1179,78 @@ Instance Details:
   User: roboclaw (system user, UID 1000)
   Gateway: Running at http://localhost:18789 (localhost only)
 
-Next steps:
-  1. Create SSH tunnel to access gateway:
-     ssh -L 18789:localhost:18789 -i ~/.ssh/id_ed25519 root@192.168.1.100 -N -f
+┌─ Auto-connect to Dashboard ─────────────────────────────────┐
+│ Would you like to open the dashboard now?                   │
+└─────────────────────────────────────────────────────────────┘
+  [Y/n]: Y
 
-  2. Access gateway in your browser:
-     http://localhost:18789
+ℹ Checking existing pairing requests...
+ℹ Creating SSH tunnel on port 18789...
+✓ Tunnel established (PID 12345)
+ℹ Opening browser...
+✓ Browser opened
+ℹ Waiting for device pairing request...
+  (press Ctrl+C to skip)
+✓ New pairing request detected
+ℹ Auto-approving device...
+✓ Device approved!
 
-  3. View gateway logs:
-     npx clawctl logs production
-
-  4. Check instance status:
-     npx clawctl status production
-
-  5. Manage gateway:
-     npx clawctl restart production  # Restart gateway
-     npx clawctl stop production     # Stop gateway
-     npx clawctl start production    # Start gateway
+✅ Dashboard is ready!
+  Tunnel will stay open. Press Ctrl+C to exit.
 ```
+
+**Note:** If `--no-auto-connect` is specified, the auto-connect flow is skipped and manual setup instructions are shown instead.
+
+---
+
+### Auto-Connect to Dashboard (v1.0.1)
+
+**Purpose:** Automatically set up SSH tunnel, open browser, and approve device pairing after deployment completes.
+
+**Flow:**
+
+1. **Interactive Prompt:** After deployment completes, user is prompted Y/n to auto-connect
+2. **Check Existing Requests:** Query gateway for any pending pairing requests (to detect new ones)
+3. **Create SSH Tunnel:** Spawn SSH process with port forwarding: `ssh -L 18789:localhost:18789 -N`
+4. **Open Browser:** Cross-platform browser opening (macOS `open`, Linux `xdg-open`, Windows `cmd /c start`)
+5. **Poll for Pairing:** Check gateway every 2 seconds for new device pairing requests (60s timeout)
+6. **Auto-Approve:** Automatically approve first new pairing request from browser
+7. **Keep Alive:** Tunnel stays open until user presses Ctrl+C
+
+**Implementation Details:**
+
+- **Module:** `src/lib/auto-connect.ts`
+- **Polling Interval:** 2 seconds
+- **Timeout:** 60 seconds for pairing request to appear
+- **Tunnel Port:** 18789 (same as gateway)
+- **Graceful Exit:** Ctrl+C handler cleans up tunnel process
+
+**Commands Used:**
+
+```bash
+# Get pending pairing requests
+docker compose exec -T openclaw-gateway node dist/index.js devices list
+
+# Approve device
+docker compose exec -T openclaw-gateway node dist/index.js devices approve <requestId>
+```
+
+**Skip Option:**
+
+```bash
+npx clawctl deploy <IP> --key <path> --no-auto-connect
+```
+
+Skips the entire auto-connect flow and shows manual setup instructions instead.
+
+**Error Handling:**
+
+- **Tunnel fails to start:** Show error with manual SSH tunnel command
+- **Browser fails to open:** Catch error, show manual URL
+- **No pairing request:** Timeout after 60s, show manual approval instructions
+- **Ctrl+C during polling:** Clean up tunnel, exit gracefully
+
+---
 
 ## Docker Configuration
 
@@ -1555,13 +1615,21 @@ const instances = await listInstances()
 ### Phase 4: CLI Integration
 
 **Tasks:**
-- [ ] Implement src/index.ts with commander
-- [ ] Implement src/commands/deploy.ts orchestration
-- [ ] Implement src/lib/interactive.ts for PTY
-- [ ] Implement src/lib/artifact.ts
-- [ ] Wire all modules together
+- [x] Implement src/index.ts with commander
+- [x] Implement src/commands/deploy.ts orchestration
+- [x] Implement src/lib/interactive.ts for PTY
+- [x] Implement src/lib/artifact.ts
+- [x] Wire all modules together
+- [x] Implement auto-connect feature (v1.0.1)
+  - [x] src/lib/auto-connect.ts module
+  - [x] Interactive Y/n prompt
+  - [x] SSH tunnel creation
+  - [x] Cross-platform browser opening
+  - [x] Pairing request polling and detection
+  - [x] Auto-approval of device pairing
+  - [x] --no-auto-connect flag
 
-**Deliverable:** Full deployment flow works
+**Deliverable:** Full deployment flow works with auto-connect to dashboard
 
 ### Phase 5: Testing & Polish
 
@@ -1625,7 +1693,7 @@ npx clawctl <IP> --key <path> --no-tty --no-interaction
 
 ---
 
-**Document Status:** Draft
+**Document Status:** Active (v1.0.1 implemented)
 **Maintained By:** RoboClaw Development Team
-**Last Review:** 2026-02-04
-**Next Steps:** Review and approve specification before implementation
+**Last Review:** 2026-02-05
+**Next Steps:** Test auto-connect feature on production deployment

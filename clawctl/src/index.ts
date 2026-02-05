@@ -25,6 +25,7 @@ program
   .option('-p, --port <port>', 'SSH port', '22')
   .option('-b, --branch <branch>', 'OpenClaw git branch', 'main')
   .option('--skip-onboard', 'Skip onboarding wizard', false)
+  .option('--no-auto-connect', 'Skip auto-connect to dashboard')
   .option('-g, --global', 'Save artifact to ~/.clawctl/instances/', false)
   .option('-f, --force', 'Ignore partial deployment state', false)
   .option('--clean', 'Remove everything and start fresh', false)

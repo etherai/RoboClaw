@@ -97,7 +97,7 @@ export async function createDirectories(ssh: SSHClient, userInfo: UserInfo): Pro
   logger.info('Creating directories...')
 
   const createDirsCmd = `
-    mkdir -p ${home}/.openclaw
+    mkdir -p ${home}/.openclaw/workspace
     mkdir -p ${home}/.roboclaw/sessions
     mkdir -p ${home}/.roboclaw/credentials
     mkdir -p ${home}/.roboclaw/data

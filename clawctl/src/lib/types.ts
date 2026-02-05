@@ -21,6 +21,7 @@ export interface DeploymentConfig {
   // Deployment options
   branch: string
   skipOnboard: boolean
+  noAutoConnect: boolean // Skip auto-connect to dashboard
   global: boolean // Save artifact to ~/.clawctl/instances/
   force: boolean  // Ignore partial deployment state
   clean: boolean  // Remove everything and start fresh

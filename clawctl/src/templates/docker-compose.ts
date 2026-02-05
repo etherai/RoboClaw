@@ -15,6 +15,7 @@ export function generateDockerCompose(): string {
   return `services:
   openclaw-gateway:
     image: \${OPENCLAW_IMAGE:-openclaw:local}
+    user: "\${DEPLOY_UID}:\${DEPLOY_GID}"
     environment:
       HOME: /home/node
       TERM: xterm-256color
@@ -23,7 +24,7 @@ export function generateDockerCompose(): string {
       - \${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
       - \${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
     ports:
-      - "\${OPENCLAW_GATEWAY_PORT:-18789}:18789"
+      - "127.0.0.1:\${OPENCLAW_GATEWAY_PORT:-18789}:18789"
     init: true
     restart: unless-stopped
     command:
@@ -39,6 +40,7 @@ export function generateDockerCompose(): string {
 
   openclaw-cli:
     image: \${OPENCLAW_IMAGE:-openclaw:local}
+    user: "\${DEPLOY_UID}:\${DEPLOY_GID}"
     environment:
       HOME: /home/node
       TERM: xterm-256color

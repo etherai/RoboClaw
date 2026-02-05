@@ -66,6 +66,40 @@ export async function runOnboarding(
 }
 
 /**
+ * Extract gateway token from OpenClaw config file
+ */
+export async function extractGatewayToken(
+  ssh: SSHClient,
+  userInfo: UserInfo
+): Promise<string | null> {
+  const configPath = `${userInfo.home}/.openclaw/openclaw.json`
+
+  logger.info('Extracting gateway token from config...')
+
+  const result = await ssh.exec(`cat ${configPath}`)
+  if (result.exitCode !== 0) {
+    logger.warn('Config file not found')
+    return null
+  }
+
+  try {
+    const config = JSON.parse(result.stdout)
+    const token = config?.gateway?.auth?.token
+
+    if (token && typeof token === 'string') {
+      logger.verbose(`Token extracted: ${token.substring(0, 8)}...`)
+      return token
+    }
+
+    logger.warn('Token not found in config')
+    return null
+  } catch (e) {
+    logger.error(`Failed to parse config: ${(e as Error).message}`)
+    return null
+  }
+}
+
+/**
  * Start the gateway daemon
  */
 export async function startGateway(ssh: SSHClient, userInfo: UserInfo): Promise<void> {
@@ -74,31 +108,13 @@ export async function startGateway(ssh: SSHClient, userInfo: UserInfo): Promise<
 
   logger.info('Starting OpenClaw gateway...')
 
-  // Check if already running
-  const isRunning = await checkGatewayRunning(ssh, composeDir, username)
+  // Always use --force-recreate to ensure container uses latest docker-compose.yml
+  // This will stop and recreate the container even if already running
+  const startCmd = `cd ${composeDir} && sudo -u ${username} docker compose up -d --force-recreate openclaw-gateway`
+  const result = await ssh.execStream(startCmd)
 
-  if (isRunning) {
-    logger.success('Gateway already running')
-
-    // Check health
-    const isHealthy = await checkGatewayHealth(ssh, composeDir, username)
-
-    if (isHealthy) {
-      logger.success('Health check passed')
-      logger.indent('Gateway listening on http://localhost:18789')
-      return
-    } else {
-      logger.warn('Gateway running but unhealthy, restarting...')
-      await ssh.exec(`cd ${composeDir} && sudo -u ${username} docker compose restart openclaw-gateway`)
-    }
-  } else {
-    // Start gateway with --force-recreate to ensure latest config is used
-    const startCmd = `cd ${composeDir} && sudo -u ${username} docker compose up -d --force-recreate openclaw-gateway`
-    const result = await ssh.execStream(startCmd)
-
-    if (result !== 0) {
-      throw new Error('Failed to start gateway')
-    }
+  if (result !== 0) {
+    throw new Error('Failed to start gateway')
   }
 
   // Wait for gateway to start listening (check logs, not auth health check)
@@ -138,22 +154,6 @@ export async function startGateway(ssh: SSHClient, userInfo: UserInfo): Promise<
 async function checkOnboardingComplete(ssh: SSHClient, home: string): Promise<boolean> {
   const result = await ssh.exec(`test -f ${home}/.openclaw/openclaw.json`)
   return result.exitCode === 0
-}
-
-/**
- * Check if gateway is running
- */
-async function checkGatewayRunning(ssh: SSHClient, composeDir: string, username: string): Promise<boolean> {
-  const result = await ssh.exec(
-    `cd ${composeDir} && sudo -u ${username} docker compose ps openclaw-gateway --format json`
-  )
-
-  if (result.exitCode !== 0) {
-    return false
-  }
-
-  // Check if container is in "running" state
-  return result.stdout.includes('"State":"running"')
 }
 
 /**

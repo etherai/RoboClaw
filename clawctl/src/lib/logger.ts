@@ -190,7 +190,12 @@ export function errorBlock(
 /**
  * Print a final success message with details
  */
-export function deploymentComplete(instanceName: string, ip: string, port: number = 18789): void {
+export function deploymentComplete(
+  instanceName: string,
+  ip: string,
+  port: number = 18789,
+  gatewayToken?: string
+): void {
   console.log()
   console.log(colorize('green', '✅ Deployment complete!'))
   console.log()
@@ -206,7 +211,14 @@ export function deploymentComplete(instanceName: string, ip: string, port: numbe
   console.log(`  ${colorize('dim', '2.')} Access gateway in your browser:`)
   console.log(`     ${colorize('cyan', `http://localhost:${port}`)}`)
   console.log()
-  console.log(`  ${colorize('dim', '3.')} Manage instance with clawctl commands ${colorize('gray', '(coming in future versions)')}:`)
+
+  if (gatewayToken) {
+    console.log(`  ${colorize('dim', '3.')} Dashboard URL (with auth token):`)
+    console.log(`     ${colorize('cyan', `http://localhost:${port}/?token=${gatewayToken}`)}`)
+    console.log()
+  }
+
+  console.log(`  ${colorize('dim', gatewayToken ? '4.' : '3.')} Manage instance with clawctl commands ${colorize('gray', '(coming in future versions)')}:`)
   console.log(`     ${colorize('gray', `clawctl logs ${instanceName}`)}`)
   console.log(`     ${colorize('gray', `clawctl status ${instanceName}`)}`)
   console.log(`     ${colorize('gray', `clawctl restart ${instanceName}`)}`)

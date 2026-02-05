@@ -88,6 +88,7 @@ export async function loadConfig(
     ssh: sshConfig,
     branch: config.branch,
     skipOnboard: config.skipOnboard,
+    noAutoConnect: flags.autoConnect === false, // Commander converts --no-auto-connect to autoConnect: false
     global: flags.global || false,
     force: flags.force || false,
     clean: flags.clean || false,

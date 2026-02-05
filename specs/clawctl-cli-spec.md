@@ -4,9 +4,9 @@
 
 This document specifies the complete command-line interface for `clawctl`, the deployment and management tool for OpenClaw instances.
 
-**Last Updated:** 2026-02-04
-**Version:** 1.0 (Draft)
-**Status:** Proposed
+**Last Updated:** 2026-02-05
+**Version:** 1.0.1 (Implemented)
+**Status:** Active
 
 ## Table of Contents
 
@@ -173,6 +173,7 @@ npx clawctl deploy <ip> [options]
 | `--port <port>` | `-p` | number | SSH port | `22` |
 | `--branch <branch>` | `-b` | string | OpenClaw git branch | `main` |
 | `--skip-onboard` | - | boolean | Skip onboarding wizard | `false` |
+| `--no-auto-connect` | - | boolean | Skip auto-connect to dashboard | `false` |
 | `--global` | `-g` | boolean | Save artifact to ~/.clawctl/instances/ | `false` |
 | `--verbose` | `-v` | boolean | Verbose output | `false` |
 
@@ -193,6 +194,11 @@ Deploy specific branch:
 npx clawctl deploy 192.168.1.100 -k ~/.ssh/id_ed25519 --branch feature/new-ui
 ```
 
+Skip auto-connect (for CI/CD):
+```bash
+npx clawctl deploy 192.168.1.100 -k ~/.ssh/id_ed25519 --no-auto-connect
+```
+
 **Output:**
 ```
 Preparing to deploy OpenClaw
@@ -209,10 +215,24 @@ Instance Details:
   IP: 192.168.1.100
   Gateway: Running at http://localhost:18789
 
-Next steps:
-  1. Create SSH tunnel: npx clawctl tunnel production
-  2. View logs: npx clawctl logs production
-  3. Check status: npx clawctl status production
+┌─ Auto-connect to Dashboard ─────────────────────────────────┐
+│ Would you like to open the dashboard now?                   │
+└─────────────────────────────────────────────────────────────┘
+  [Y/n]: Y
+
+ℹ Checking existing pairing requests...
+ℹ Creating SSH tunnel on port 18789...
+✓ Tunnel established (PID 12345)
+ℹ Opening browser...
+✓ Browser opened
+ℹ Waiting for device pairing request...
+  (press Ctrl+C to skip)
+✓ New pairing request detected
+ℹ Auto-approving device...
+✓ Device approved!
+
+✅ Dashboard is ready!
+  Tunnel will stay open. Press Ctrl+C to exit.
 ```
 
 **Artifact Created:**
@@ -1422,13 +1442,20 @@ To view logs:
 
 **Must-have for first release:**
 - [x] `deploy` - Full deployment flow
+- [x] Auto-connect to dashboard (v1.0.1)
+  - [x] Interactive Y/n prompt
+  - [x] SSH tunnel creation
+  - [x] Browser opening (cross-platform)
+  - [x] Pairing request detection
+  - [x] Auto-approval of pairing
+  - [x] `--no-auto-connect` flag
 - [x] `list` - Show instances
 - [x] `status` - Instance details
 - [ ] Instance artifact CRUD operations
 - [ ] SSH connection management
 - [ ] Error handling framework
 
-**Deliverable:** Can deploy and view instances
+**Deliverable:** Can deploy and view instances, auto-connect to dashboard
 
 ### Phase 2: Gateway Management (v1.0)
 
@@ -1527,6 +1554,6 @@ To view logs:
 
 ---
 
-**Document Status:** Draft
+**Document Status:** Active (v1.0.1 implemented)
 **Maintained By:** RoboClaw Development Team
-**Next Steps:** Review and iterate on CLI design before implementation
+**Next Steps:** Implement remaining commands (list, status, logs, etc.) in v1.1
