@@ -5,7 +5,6 @@
 This document specifies the complete command-line interface for `clawctl`, the deployment and management tool for OpenClaw instances.
 
 **Last Updated:** 2026-02-05
-**Version:** 1.0.1 (Implemented)
 **Status:** Active
 
 ## Table of Contents
@@ -1438,11 +1437,11 @@ To view logs:
 
 ## Implementation Phases
 
-### Phase 1: Core Infrastructure (v1.0)
+### Phase 1: Core Infrastructure
 
 **Must-have for first release:**
 - [x] `deploy` - Full deployment flow
-- [x] Auto-connect to dashboard (v1.0.1)
+- [x] Auto-connect to dashboard
   - [x] Interactive Y/n prompt
   - [x] SSH tunnel creation
   - [x] Browser opening (cross-platform)
@@ -1457,7 +1456,7 @@ To view logs:
 
 **Deliverable:** Can deploy and view instances, auto-connect to dashboard
 
-### Phase 2: Gateway Management (v1.0)
+### Phase 2: Gateway Management
 
 **Must-have for first release:**
 - [ ] `start` - Start gateway
@@ -1467,7 +1466,7 @@ To view logs:
 
 **Deliverable:** Can manage gateway lifecycle
 
-### Phase 3: OpenClaw Operations (v1.1)
+### Phase 3: OpenClaw Operations
 
 **Nice-to-have, can ship later:**
 - [ ] `onboard` - Run onboarding
@@ -1476,7 +1475,7 @@ To view logs:
 
 **Deliverable:** Can run OpenClaw commands without SSH
 
-### Phase 4: Connections (v1.1)
+### Phase 4: Connections
 
 **Nice-to-have, can ship later:**
 - [ ] `connect` - SSH to server
@@ -1484,14 +1483,14 @@ To view logs:
 
 **Deliverable:** Easy access to server and gateway
 
-### Phase 5: Cleanup (v1.0)
+### Phase 5: Cleanup
 
 **Must-have for first release:**
 - [ ] `destroy` - Remove instance
 
 **Deliverable:** Complete lifecycle management
 
-### Phase 6: Configuration Management (v1.0)
+### Phase 6: Configuration Management
 
 **Must-have for first release:**
 - [ ] Load configuration from files and env vars
@@ -1502,7 +1501,7 @@ To view logs:
 
 **Deliverable:** Complete configuration system
 
-### Phase 7: Advanced (v1.2+)
+### Phase 7: Advanced Features
 
 **Future enhancements:**
 - [ ] `deploy-multi` - Multi-server deployment
@@ -1524,7 +1523,7 @@ To view logs:
    - Allow users to organize artifacts per-project or globally
 
 2. **SSH connection handling:** Option A - Connect/disconnect per command
-   - Simple implementation for v1.0
+   - Simple implementation for initial release
    - No state management or connection pooling
    - Optimize later if performance becomes an issue
 
@@ -1532,7 +1531,7 @@ To view logs:
    - Convenience wrapper around SSH tunnel creation
    - Reads credentials from artifact
    - Support foreground and background modes
-   - No complex tunnel tracking for v1.0
+   - No complex tunnel tracking for initial release
 
 4. **Wrapper script:** Not needed
    - `clawctl` commands handle all operations
@@ -1554,6 +1553,6 @@ To view logs:
 
 ---
 
-**Document Status:** Active (v1.0.1 implemented)
+**Document Status:** Active
 **Maintained By:** RoboClaw Development Team
-**Next Steps:** Implement remaining commands (list, status, logs, etc.) in v1.1
+**Next Steps:** Implement remaining commands (list, status, logs, etc.)

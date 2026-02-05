@@ -12,7 +12,7 @@ const program = new Command()
 program
   .name('clawctl')
   .description('CLI tool for deploying and managing OpenClaw instances via Docker')
-  .version('1.0.0')
+  .version('1.0.1')
 
 // Deploy command
 program

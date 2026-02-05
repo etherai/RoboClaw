@@ -5,7 +5,6 @@
 This document specifies the technical implementation of the `clawctl` npm package, a CLI tool for deploying OpenClaw to remote servers via Docker containers.
 
 **Last Updated:** 2026-02-05
-**Version:** 1.0.1 (Implemented)
 **Status:** Active
 
 ## Table of Contents
@@ -131,7 +130,7 @@ npx clawctl <ip> [options]
 
 **Notes:**
 - The `--user` option exists for flexibility, but the SSH user **must have root privileges**
-- Use `--force` to ignore partial deployment state and restart from phase 1
+- Use `--force` to ignore partial deployment state and restart from phase 0
 - Use `--clean` to completely remove previous deployment before starting
 - Re-running without flags will automatically resume from last failed phase
 
@@ -310,15 +309,16 @@ Create `/home/roboclaw/.clawctl-deploy-state.json` on the remote server:
   "instanceName": "production",
   "deploymentId": "uuid-v4",
   "startedAt": "2026-02-04T15:30:00Z",
-  "lastPhase": 7,
+  "lastPhase": 6,
   "phases": {
+    "0": "complete",
     "1": "complete",
     "2": "complete",
     "3": "complete",
     "4": "complete",
     "5": "complete",
-    "6": "complete",
-    "7": "failed",
+    "6": "failed",
+    "7": "pending",
     "8": "pending",
     "9": "pending",
     "10": "pending"
@@ -342,13 +342,13 @@ Create `/home/roboclaw/.clawctl-deploy-state.json` on the remote server:
    - Skip completed phases
    - Start from first non-complete phase
 3. **If not found:**
-   - Fresh deployment, start from phase 1
+   - Fresh deployment, start from phase 0
 4. **Update state file** after each phase completes
 5. **Delete state file** when deployment fully succeeds
 
 ### User Experience
 
-**Scenario: Deployment fails at phase 7**
+**Scenario: Deployment fails at phase 6**
 
 First attempt:
 ```bash
@@ -357,19 +357,19 @@ npx clawctl deploy 192.168.1.100 --key ~/.ssh/id_ed25519 --name production
 
 Output:
 ```
-[Phases 1-6 complete]
+[Phases 0-5 complete]
 
-Phase 7: Building OpenClaw image...
+Phase 6: Building OpenClaw image...
   Cloning repository...
   Building image...
   ✗ Error: Docker build failed (network timeout)
 
-Deployment failed at phase 7: Build OpenClaw Image
+Deployment failed at phase 6: Build OpenClaw Image
 
 To retry:
   npx clawctl deploy 192.168.1.100 --key ~/.ssh/id_ed25519 --name production
 
-The deployment will resume from phase 7.
+The deployment will resume from phase 6.
 ```
 
 Second attempt (retry):
@@ -383,24 +383,24 @@ Detected partial deployment on 192.168.1.100
 
   Instance: production
   Started: 2026-02-04 15:30:00
-  Last phase: 7 (failed)
+  Last phase: 6 (failed)
 
-Resume from phase 7? [Y/n] y
+Resume from phase 6? [Y/n] y
 
 Resuming deployment...
-  ✓ Phase 1: Validated (skip)
-  ✓ Phase 2: Connected (skip)
-  ✓ Phase 3: Base packages installed (skip)
-  ✓ Phase 4: Docker installed (skip)
-  ✓ Phase 5: User configured (skip)
-  ✓ Phase 6: Directories created (skip)
+  ✓ Phase 0: Validated (skip)
+  ✓ Phase 1: Connected (skip)
+  ✓ Phase 2: Base packages installed (skip)
+  ✓ Phase 3: Docker installed (skip)
+  ✓ Phase 4: User configured (skip)
+  ✓ Phase 5: Directories created (skip)
 
-Phase 7: Building OpenClaw image...
+Phase 6: Building OpenClaw image...
   Repository already cloned
   Building image...
   ✓ Image built: roboclaw/openclaw:local
 
-[Continues with phases 8-10]
+[Continues with phases 7-10]
 
 ✅ Deployment complete!
 ```
@@ -417,7 +417,7 @@ This will:
 1. Detect existing state file
 2. Warn user about overwriting
 3. Delete state file
-4. Start fresh from phase 1
+4. Start fresh from phase 0
 
 ### Phase-Level Idempotency
 
@@ -455,20 +455,21 @@ async function executePhase(phase: Phase, state: DeploymentState) {
 
 | Phase | Check Method | Safe to Retry? |
 |-------|--------------|----------------|
-| 1. Validation | Always runs (validates current state) | ✅ Always |
-| 2. SSH Connection | Test connection | ✅ Always |
-| 3. Base Packages | `dpkg -l \| grep curl` | ✅ Already installed |
-| 4. Docker | `docker --version` | ✅ Already installed |
-| 5. User Setup | `id roboclaw` | ✅ User exists |
-| 6. Directories | `test -d /home/roboclaw/.openclaw` | ✅ Already created |
-| 7. Image Build | `docker images \| grep roboclaw/openclaw:local` | ✅ Already built |
-| 8. Upload Compose | Compare checksums | ✅ Already uploaded |
-| 9. Onboarding | Check `~/.openclaw/config.json` exists | ⚠️ Skip if done |
-| 10. Artifact | Local file exists | ✅ Overwrite |
+| 0. Validation | Always runs (validates current state) | ✅ Always |
+| 1. SSH Connection | Test connection | ✅ Always |
+| 2. Base Packages | `dpkg -l \| grep curl` | ✅ Already installed |
+| 3. Docker | `docker --version` | ✅ Already installed |
+| 4. User Setup | `id roboclaw` | ✅ User exists |
+| 5. Directories | `test -d /home/roboclaw/.openclaw` | ✅ Already created |
+| 6. Image Build | `docker images \| grep roboclaw/openclaw:local` | ✅ Already built |
+| 7. Upload Compose | Compare checksums | ✅ Already uploaded |
+| 8. Onboarding | Check `~/.openclaw/config.json` exists | ⚠️ Skip if done |
+| 9. Artifact | Local file exists | ✅ Overwrite |
+| 10. Finalize | Delete state file | ✅ Always |
 
 ### Phase-Specific Idempotency Logic
 
-#### Phase 3: Install Base Packages
+#### Phase 2: Install Base Packages
 ```bash
 # Check if packages already installed
 if dpkg -l | grep -q '^ii.*curl.*'; then
@@ -479,7 +480,7 @@ else
 fi
 ```
 
-#### Phase 4: Install Docker
+#### Phase 3: Install Docker
 ```bash
 # Check if Docker already installed
 if command -v docker &> /dev/null; then
@@ -498,7 +499,7 @@ else
 fi
 ```
 
-#### Phase 5: Setup Deployment User
+#### Phase 4: Setup Deployment User
 ```bash
 # Check if roboclaw user exists
 if id roboclaw &> /dev/null; then
@@ -517,7 +518,7 @@ else
 fi
 ```
 
-#### Phase 6: Create Directories
+#### Phase 5: Create Directories
 ```bash
 # Check each directory
 for dir in .openclaw .roboclaw docker openclaw-src; do
@@ -537,7 +538,7 @@ chown -R $DEPLOY_USER:$DEPLOY_USER \
   $DEPLOY_HOME/openclaw-src
 ```
 
-#### Phase 7: Build OpenClaw Image
+#### Phase 6: Build OpenClaw Image
 ```bash
 # Check if image already exists
 if docker images | grep -q 'roboclaw/openclaw.*local'; then
@@ -568,7 +569,7 @@ else
 fi
 ```
 
-#### Phase 8: Upload Docker Compose
+#### Phase 7: Upload Docker Compose
 ```bash
 # Check if files exist and compare checksums
 REMOTE_COMPOSE="$DEPLOY_HOME/docker/docker-compose.yml"
@@ -588,7 +589,7 @@ else
 fi
 ```
 
-#### Phase 9: Onboarding & Gateway Startup
+#### Phase 8: Onboarding & Gateway Startup
 ```bash
 # Check if onboarding already completed
 if [ -f "$DEPLOY_HOME/.openclaw/config.json" ]; then
@@ -614,11 +615,19 @@ else
 fi
 ```
 
-#### Phase 10: Create Artifact
+#### Phase 9: Create Instance Artifact
 ```bash
 # Always overwrite local artifact (latest state)
-# This is the final phase, so we know deployment succeeded
 ```
+
+#### Phase 10: Finalize Deployment
+
+**Tasks:**
+1. Delete deployment state file (marks deployment as complete)
+2. Display success message with instance details
+3. Optionally run auto-connect to dashboard
+
+**Note:** Auto-connect is NOT a deployment phase - it's a post-deployment optional feature that runs after Phase 10 completes.
 
 ### Cleanup on Failure
 
@@ -654,7 +663,7 @@ Continue? [y/N]
 **Location:** `/home/roboclaw/.clawctl-deploy-state.json`
 
 **Lifecycle:**
-- Created: Start of phase 1
+- Created: Start of phase 0
 - Updated: After each phase completes
 - Deleted: Successful completion of phase 10
 - Deleted: User runs `--force` or `--clean`
@@ -683,7 +692,9 @@ Continue? [y/N]
 
 ### Phase-by-Phase Breakdown
 
-#### Phase 1: Argument Validation
+**Note:** Deployment consists of 11 phases numbered 0-10. Phase 0 is validation, Phases 1-9 are deployment steps, and Phase 10 is finalization.
+
+#### Phase 0: Argument Validation
 
 **Tasks:**
 1. Parse CLI arguments
@@ -711,7 +722,7 @@ Preparing to deploy OpenClaw
 ⚠️  Note: This tool requires root SSH access to install Docker
 ```
 
-#### Phase 2: SSH Connection
+#### Phase 1: SSH Connection
 
 **Tasks:**
 1. Create SSH client instance
@@ -752,7 +763,7 @@ Options:
   3. Use sudo access (not yet supported)
 ```
 
-#### Phase 3: Install Base Packages
+#### Phase 2: Install Base Packages
 
 **Tasks:**
 1. Update apt cache: `apt-get update -qq`
@@ -773,7 +784,7 @@ Installing base packages...
   ✓ Base packages installed
 ```
 
-#### Phase 4: Install Docker
+#### Phase 3: Install Docker
 
 **Tasks:**
 1. Check if Docker is installed: `docker --version`
@@ -810,10 +821,10 @@ Installing Docker...
   ✓ Docker Compose v2.24.0
 ```
 
-#### Phase 5: Setup Deployment User
+#### Phase 4: Setup Deployment User
 
 **Tasks:**
-1. Verify we're running as root (already checked in Phase 2)
+1. Verify we're running as root (already checked in Phase 1)
 2. Create dedicated 'roboclaw' system user if it doesn't exist
 3. Set UID 1000 / GID 1000 (or next available)
 4. Add roboclaw user to docker group
@@ -854,7 +865,7 @@ Setting up deployment user...
 
 **Note:** Running containers as UID 1000 (non-root) provides security isolation. Files in mounted volumes will be owned by the 'roboclaw' user.
 
-#### Phase 6: Create Directories
+#### Phase 5: Create Directories
 
 **Tasks:**
 1. Create OpenClaw config directories in roboclaw user's home
@@ -892,7 +903,7 @@ Creating directories...
   Ownership: roboclaw:roboclaw
 ```
 
-#### Phase 7: Build OpenClaw Image
+#### Phase 6: Build OpenClaw Image
 
 **Tasks:**
 1. Clone OpenClaw repository as roboclaw user
@@ -936,7 +947,7 @@ Building OpenClaw image...
   ✓ Container verified: runs as UID 1000 (non-root)
 ```
 
-#### Phase 8: Upload Docker Compose
+#### Phase 7: Upload Docker Compose
 
 **Tasks:**
 1. Generate docker-compose.yml with `${VARIABLES}` intact
@@ -1053,7 +1064,7 @@ Configuring Docker Compose...
   ✓ Ownership set to roboclaw:roboclaw
 ```
 
-#### Phase 9: Interactive Onboarding & Gateway Startup
+#### Phase 8: Interactive Onboarding & Gateway Startup
 
 **Tasks:**
 1. Run onboarding container with PTY
@@ -1135,7 +1146,7 @@ To debug:
   docker compose restart openclaw-gateway
 ```
 
-#### Phase 10: Create Artifact
+#### Phase 9: Create Instance Artifact
 
 **Tasks:**
 1. Create instances/ directory if needed
@@ -1203,7 +1214,7 @@ Instance Details:
 
 ---
 
-### Auto-Connect to Dashboard (v1.0.1)
+### Auto-Connect to Dashboard
 
 **Purpose:** Automatically set up SSH tunnel, open browser, and approve device pairing after deployment completes.
 
@@ -1620,7 +1631,7 @@ const instances = await listInstances()
 - [x] Implement src/lib/interactive.ts for PTY
 - [x] Implement src/lib/artifact.ts
 - [x] Wire all modules together
-- [x] Implement auto-connect feature (v1.0.1)
+- [x] Implement auto-connect feature
   - [x] src/lib/auto-connect.ts module
   - [x] Interactive Y/n prompt
   - [x] SSH tunnel creation
@@ -1656,13 +1667,13 @@ const instances = await listInstances()
 
 ## Future Enhancements
 
-### v1.1: Docker Hub Support
+### Docker Hub Support
 
 - Add `--image <tag>` option to pull from Docker Hub
 - Deprecate on-server image build for production
 - Keep build mode for development/testing
 
-### v1.2: Additional Commands
+### Additional Commands
 
 ```bash
 npx clawctl connect <instance>     # SSH to instance
@@ -1671,14 +1682,14 @@ npx clawctl list                   # Show all instances
 npx clawctl destroy <instance>     # Clean up
 ```
 
-### v1.3: Multi-Server Support
+### Multi-Server Support
 
 ```bash
 npx clawctl deploy-multi servers.yml
 # Deploy to multiple servers in parallel
 ```
 
-### v1.4: CI/CD Mode
+### CI/CD Mode
 
 ```bash
 npx clawctl <IP> --key <path> --no-tty --no-interaction
@@ -1693,7 +1704,7 @@ npx clawctl <IP> --key <path> --no-tty --no-interaction
 
 ---
 
-**Document Status:** Active (v1.0.1 implemented)
+**Document Status:** Active
 **Maintained By:** RoboClaw Development Team
 **Last Review:** 2026-02-05
 **Next Steps:** Test auto-connect feature on production deployment
