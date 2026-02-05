@@ -361,7 +361,7 @@ export async function deployCommand(flags: any): Promise<void> {
     // Auto-Connect (Optional)
     // ====================================================================
     if (!config.noAutoConnect) {
-      await autoConnect.autoConnect(ssh, config.ssh, deployUser, 18789)
+      await autoConnect.autoConnect(ssh, config.ssh, deployUser, 18789, gatewayToken || undefined)
     }
 
   } catch (error) {

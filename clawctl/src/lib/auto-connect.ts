@@ -184,7 +184,8 @@ export async function autoConnect(
   ssh: SSHClient,
   sshConfig: SSHConfig,
   userInfo: UserInfo,
-  port: number = 18789
+  port: number = 18789,
+  token?: string
 ): Promise<void> {
   // Step 1: Prompt user
   const shouldConnect = await promptAutoConnect()
@@ -215,7 +216,9 @@ export async function autoConnect(
 
   // Step 4: Open browser
   logger.info('Opening browser...')
-  const url = `http://localhost:${port}`
+  const url = token
+    ? `http://localhost:${port}/?token=${token}`
+    : `http://localhost:${port}`
   openBrowser(url)
   logger.success('Browser opened')
 
