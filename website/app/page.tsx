@@ -19,13 +19,13 @@ export default function Home() {
         <div className="container mx-auto px-4 py-16 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-block px-4 py-2 mb-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-sm text-gray-300">
-              Powered by OpenClaw
+              An independent community project — not affiliated with OpenClaw
             </div>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-gray-400">
               Launch OpenClaw Without Getting Pinched
             </h1>
             <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto">
-              Deploy your own OpenClaw in minutes. Free, secure, and fully reversible.
+              Deploy your own OpenClaw instance in minutes. Built by enthusiasts, for the community. Free, secure, and fully reversible.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a href="https://github.com/hintjen/roboclaw" target="_blank" rel="noopener noreferrer">
@@ -69,7 +69,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-2xl font-bold mb-3">Deploy OpenClaw to Your VPS via SSH</h3>
                 <p className="text-gray-400 mb-6 leading-relaxed">
-                  Bring your own server and get full control. RoboClaw deploys OpenClaw to any VPS using SSH and Ansible—just provide your server credentials and we'll handle the installation, configuration, and setup automatically. Works with any cloud provider: AWS, DigitalOcean, Linode, Hetzner, or even your home server.
+                  Bring your own server and get full control. RoboClaw is a community-built tool that deploys OpenClaw to any VPS using SSH and Ansible—just provide your server credentials and we'll handle the installation, configuration, and setup automatically. Works with any cloud provider or even your home server.
                 </p>
                 <a href="https://github.com/hintjen/roboclaw" target="_blank" rel="noopener noreferrer">
                   <Button className="w-full mb-4 flex items-center justify-center gap-2">
@@ -127,8 +127,8 @@ export default function Home() {
               icon={<Zap className="w-10 h-10" />}
               title="Fast"
               subtitle="Ready-to-Use Templates"
-              description="Get started instantly with pre-configured OpenClaw setups from the community. Deploy popular use cases with one command."
-              badge="Powered by OpenClaw's skill system"
+              description="Get started instantly with pre-configured OpenClaw setups from the RoboClaw community. Deploy popular use cases with one command."
+              badge="Compatible with OpenClaw's skill system"
             />
             <ValuePropCard
               icon={<Shield className="w-10 h-10" />}
@@ -200,7 +200,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">Community Marketplace</h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Browse workflows, plugins, and skills curated by the OpenClaw community. Everything is tested, verified, and ready to use. Just pick what you need from the marketplace and start using it right away.
+              Browse workflows, plugins, and skills curated by the RoboClaw community. Everything is tested, verified, and ready to use. Just pick what you need from the marketplace and start using it right away.
             </p>
           </div>
 
@@ -208,19 +208,19 @@ export default function Home() {
             <WorkflowCard
               icon="🔥"
               title="AI Code Review Assistant"
-              author="@anthropic-community"
+              author="@openclaw-community"
               deploys="4,823"
               description="Automatically reviews your code, suggests improvements, and catches bugs before they become problems"
-              integrations={["GitHub", "Linear", "Slack"]}
+              integrations={["GitHub", "Linear", "Chat"]}
               security={["Secure password storage", "Full activity history", "Easy rollback"]}
             />
             <WorkflowCard
               icon="⭐"
               title="Customer Support Agent"
-              author="@zendesk-ai"
+              author="@support-community"
               deploys="3,291"
-              description="Responds to customer questions on Slack and finds answers in your knowledge base"
-              integrations={["Slack", "Zendesk", "Knowledge Base"]}
+              description="Responds to customer questions on your messaging platform and finds answers in your knowledge base"
+              integrations={["Chat", "Helpdesk", "Knowledge Base"]}
               security={["Tokens stored safely", "Protected connections", "Complete interaction log"]}
             />
           </div>
@@ -282,7 +282,7 @@ export default function Home() {
             <StepCard
               number={2}
               title="Browse the Marketplace"
-              description="Explore workflows, plugins, and skills curated by the OpenClaw community. Pick what you need from the marketplace—whether it's a Slack bot, GitHub helper, or custom automation"
+              description="Explore workflows, plugins, and skills curated by the RoboClaw community. Pick what you need from the marketplace—whether it's a chat bot, GitHub helper, or custom automation"
             />
             <StepCard
               number={3}
@@ -296,9 +296,12 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-white/10 py-12">
         <div className="container mx-auto px-4 text-center text-gray-500 text-sm">
-          <p className="mb-2">RoboClaw: Powered by <a href="https://github.com/etherai/openclaw" target="_blank" rel="noopener noreferrer" className="text-accent-purple hover:text-accent-blue transition-colors">OpenClaw</a>. Deploying OpenClaw since 2026.</p>
-          <p className="text-gray-600">Made with Love by <a href="https://github.com/hintjen" target="_blank" rel="noopener noreferrer" className="text-accent-purple hover:text-accent-blue transition-colors">Hintjen</a>.</p>
-          <p className="mt-3">
+          <p className="mb-2">RoboClaw is an independent community project that makes it easy to deploy <a href="https://github.com/etherai/openclaw" target="_blank" rel="noopener noreferrer" className="text-accent-purple hover:text-accent-blue transition-colors">OpenClaw</a>.</p>
+          <p className="text-gray-600 mb-2">Made with Love by <a href="https://github.com/hintjen" target="_blank" rel="noopener noreferrer" className="text-accent-purple hover:text-accent-blue transition-colors">Hintjen</a>.</p>
+          <p className="text-gray-600 text-xs max-w-xl mx-auto mb-3">
+            RoboClaw is not affiliated with, endorsed by, or officially connected to the OpenClaw project. OpenClaw is an independent open-source project with its own maintainers and governance.
+          </p>
+          <p>
             <a href="https://x.com/RoboClawX" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-accent-purple hover:text-accent-blue transition-colors">
               <Twitter className="w-4 h-4" />
               Follow RoboClaw on X
@@ -618,7 +621,7 @@ function TabbedTerminal() {
                 Discord
               </div>
               <div className="px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-gray-500">
-                Slack
+                Chat
               </div>
               <div className="px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-gray-500">
                 Telegram
