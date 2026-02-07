@@ -1,124 +1,80 @@
 # RoboClaw
 
-> 🚧 **PROJECT NOT FUNCTIONAL** — This project is currently in early development and is **not in a functional state**.
->
-> **Want to get involved?** Join the [OpenClaw Discord community](https://discord.gg/8DaPXhRFfv) where active development is happening in the voice chat channels! Follow [@RoboClawX](https://x.com/RoboClawX) for updates. This is where the community is building RoboClaw together.
+> Community-built deployment system for self-hosted OpenClaw AI assistants
 
-Deploy your own OpenClaw instance in minutes. Free, secure, and fully reversible. *(Coming soon)*
+**Join the community:** [OpenClaw Discord](https://discord.gg/8DaPXhRFfv) | Follow [@RoboClawX](https://x.com/RoboClawX) for updates
+
+---
+
+## What is This?
+
+**RoboClaw** is a community-developed deployment automation system that provisions self-hosted **OpenClaw** instances to remote servers. OpenClaw is an AI assistant platform that provides intelligent assistance through command-line and web interfaces.
+
+Made by the community, for the community. Deploy a complete OpenClaw instance to any Ubuntu/Debian server with a single command.
 
 ## Quick Start
 
 ```bash
-# 1. Deploy OpenClaw to your server via SSH
-roboclaw deploy --ssh user@your-server-ip
-
-# Example output:
-# ✓ Connected via SSH
-# ✓ Running Ansible playbook...
-# ✓ OpenClaw installed
-# ✓ RoboClaw features configured
-# ✓ Your personal OpenClaw is ready!
-# 🎉 Dashboard: https://your-server-ip:3000
-
-# 2. Connect to your server and onboard RoboClaw
-ssh user@your-server-ip
-sudo su - roboclaw
-openclaw onboard --install-daemon
+npx clawctl deploy 192.168.1.100 --key ~/.ssh/id_ed25519
 ```
 
-## What You Get
+That's it! This single command deploys OpenClaw to your server in ~3-5 minutes.
 
-- **Your Data Stays on Your Server** — Full control over your data
-- **Your Secrets Stay on Your Computer** — API keys and passwords never leave your machine
-- **No Vendor Lock-In** — Works with any cloud provider (AWS, DigitalOcean, Linode, Hetzner, or even your home server)
-- **Automatic Backups** — Your configurations are automatically backed up
-- **Activity Logging** — See everything your AI agents do
-- **Secure Password Storage** — Credentials are encrypted and stored safely
+See the [clawctl README](clawctl/README.md) for detailed documentation.
 
-## How It Works
+## What Gets Deployed
 
-RoboClaw uses SSH and Ansible to deploy [OpenClaw](https://github.com/openclaw/openclaw) to your server. Powered by [openclaw/clawdbot-ansible](https://github.com/openclaw/clawdbot-ansible).
+When you run `npx clawctl deploy`, the following is automatically installed on your server:
 
-1. **Connect to your VPS** — Uses your SSH credentials to access your server
-2. **Provision the Server** — Installs Docker, Node.js, and other dependencies
-3. **Install OpenClaw** — Deploys the latest OpenClaw version
-4. **Configure Security** — Sets up firewall rules and creates dedicated user accounts
-5. **Enable RoboClaw Features** — Configures automatic updates, backups, and activity logging
-
-Everything runs from your local machine. No manual SSH configuration required.
+- **Docker containers** running OpenClaw CLI and Gateway services
+- **Dedicated `roboclaw` system user** (UID 1000) for non-root security
+- **Web dashboard** accessible via SSH tunnel at http://localhost:18789
+- **Interactive onboarding** wizard for initial configuration
+- **Persistent data** stored in `~/.openclaw/` directory
 
 ## Requirements
 
-- A VPS or server with SSH access
-- Ubuntu 24.04 (recommended) or similar Linux distribution
-- Python 3.12+ (for Ansible)
-- SSH key or password authentication
+**Local machine:**
+- Node.js 18 or higher
+- SSH private key with root access to target server
 
-## Post-Installation
+**Target server:**
+- Ubuntu 20.04+ or Debian 11+
+- 2GB RAM, 1 vCPU, 10GB disk (minimum)
+- Root SSH access
+- Internet connection
 
-After deploying, connect to your server and run the onboarding wizard:
+## Project Structure
 
-```bash
-# 1. SSH into your server
-ssh user@your-server-ip
-
-# 2. Switch to the roboclaw user
-sudo su - roboclaw
-
-# 3. Run onboarding wizard
-openclaw onboard --install-daemon
-
-# This will:
-# - Configure messaging provider (WhatsApp/Telegram/Discord/Slack/Matrix)
-# - Create roboclaw.json config
-# - Install systemd service
-# - Start the daemon
+```
+RoboClaw/
+├── clawctl/               # Modern Node.js deployment tool (recommended)
+├── ansible-deployment/    # Legacy Python/Ansible system (deprecated)
+├── website/               # Project landing page
+├── specs/                 # Technical specifications
+└── instances/             # Deployment artifacts (created at runtime)
 ```
 
-## Security
+## Community
 
-- **Firewall Protection** — UFW blocks all incoming traffic except SSH (22)
-- **Docker Isolation** — Containers are isolated and can't bypass the firewall
-- **Non-root User** — OpenClaw runs as a dedicated `roboclaw` user
-- **SSH Key Authentication** — Supports ed25519 and RSA keys
-- **Encrypted Credentials** — API tokens and passwords are stored securely
+RoboClaw is built by the community, for the community. We welcome contributions, feedback, and collaboration.
 
-## Join the Community
+**Get Involved:**
+- **Discord:** [Join OpenClaw Discord](https://discord.gg/8DaPXhRFfv) - Chat with contributors and users
+- **Twitter:** [@RoboClawX](https://x.com/RoboClawX) - Follow for updates and announcements
+- **Issues:** [GitHub Issues](https://github.com/openclaw/roboclaw/issues) - Report bugs, request features
+- **Pull Requests:** Contributions are welcome! See our codebase to get started
 
-**🎙️ Active Development in Progress!**
-
-RoboClaw is being built live in the OpenClaw Discord community. Join us in the voice chat channels to:
-- Watch development happen in real-time
-- Contribute ideas and feedback
-- Help shape the project
-- Connect with other community members
-
-**Links:**
-- **Discord**: [discord.gg/8DaPXhRFfv](https://discord.gg/8DaPXhRFfv) — Join the voice chat!
-- **X (Twitter)**: [@RoboClawX](https://x.com/RoboClawX) — Stay updated with the latest news
-- **GitHub**: [github.com/hintjen/roboclaw](https://github.com/hintjen/roboclaw)
-- **Website**: [roboclaw.ai](https://roboclaw.ai)
-
-## Coming Soon
-
-- **RoboClaw UI** — Visual deployment interface (currently shown on website)
-- **RoboClaw Cloud** — Managed hosting with zero infrastructure hassle
-- **Community Marketplace** — Browse and deploy workflows, plugins, and skills from the OpenClaw community
-
-## Documentation
-
-Coming soon
+Whether you're fixing bugs, adding features, improving documentation, or helping other users - your contributions make RoboClaw better for everyone.
 
 ## License
 
-AGPL-3.0
+This project is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0).
 
-## Support
+See [LICENSE](LICENSE) for the full license text.
 
-- For deployment issues, join our [Discord](https://discord.gg/8DaPXhRFfv)
-- For updates and announcements, follow [@RoboClawX](https://x.com/RoboClawX)
-- For OpenClaw issues, see the [OpenClaw repository](https://github.com/openclaw/openclaw)
+We chose AGPL-3.0 to ensure RoboClaw remains free and open source for the community forever. This license requires anyone who modifies and deploys this software over a network to share their changes back with the community, ensuring everyone benefits from improvements.
 
 ---
 
-Made with Love by [Hintjen](https://github.com/hintjen). Powered by ClawFleet and [OpenClaw](https://github.com/openclaw/openclaw).
+**For complete documentation, see the [clawctl README](clawctl/README.md).**

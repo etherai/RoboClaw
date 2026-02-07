@@ -1,0 +1,49 @@
+{
+  "name": "clawctl",
+  "version": "1.0.1",
+  "description": "CLI tool for deploying and managing OpenClaw instances via Docker",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "clawctl": "dist/index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "dev": "npm run build && node dist/index.js",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "openclaw",
+    "roboclaw",
+    "deployment",
+    "docker",
+    "ssh",
+    "cli"
+  ],
+  "author": "RoboClaw Development Team",
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openclaw/roboclaw"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "ssh2": "^1.16.0",
+    "yaml": "^2.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/ssh2": "^1.15.1",
+    "typescript": "^5.7.3"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}

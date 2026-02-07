@@ -1,0 +1,35 @@
+---
+- name: Cleanup SSH keys
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    hcloud_token: "{{ lookup('env', 'HCLOUD_TOKEN') }}"
+    key_name: "{{ lookup('env', 'KEY_NAME') }}"
+
+  tasks:
+    - name: Get all SSH keys
+      hetzner.hcloud.ssh_key_info:
+        api_token: "{{ hcloud_token }}"
+      register: ssh_keys
+
+    - name: Display all SSH keys
+      ansible.builtin.debug:
+        msg: |
+          📋 SSH Keys:
+          {% for key in ssh_keys.hcloud_ssh_key_info %}
+          • {{ key.name }} ({{ key.fingerprint }})
+          {% endfor %}
+
+    - name: Delete specific SSH key
+      hetzner.hcloud.ssh_key:
+        api_token: "{{ hcloud_token }}"
+        name: "{{ key_name }}"
+        state: absent
+      when: key_name != ""
+      register: delete_result
+
+    - name: Show deletion result
+      ansible.builtin.debug:
+        msg: "✅ Deleted SSH key: {{ key_name }}"
+      when: key_name != "" and delete_result.changed

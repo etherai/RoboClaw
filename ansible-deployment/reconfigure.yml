@@ -1,0 +1,269 @@
+---
+- name: Reconfigure existing RoboClaw instance
+  hosts: all
+  gather_facts: true
+  remote_user: root
+  become: true
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    roboclaw_user: roboclaw
+    roboclaw_home: "/home/{{ roboclaw_user }}"
+    roboclaw_config_dir: "{{ roboclaw_home }}/.roboclaw"
+    nodejs_version: "22.x"
+
+  tasks:
+    - name: Display reconfigure start message
+      ansible.builtin.debug:
+        msg: |
+          🔄 RECONFIGURING INSTANCE 🔄
+
+          This playbook will apply configuration changes to your existing instance.
+          It is safe to re-run (idempotent).
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      tags: always
+
+    # User configuration
+    - name: Create roboclaw system user
+      ansible.builtin.user:
+        name: "{{ roboclaw_user }}"
+        comment: "RoboClaw system user"
+        shell: /bin/bash
+        create_home: true
+        home: "{{ roboclaw_home }}"
+      tags: [user, always]
+
+    - name: Add roboclaw user to sudoers with NOPASSWD
+      ansible.builtin.copy:
+        content: "{{ roboclaw_user }} ALL=(ALL) NOPASSWD:ALL\n"
+        dest: "/etc/sudoers.d/{{ roboclaw_user }}"
+        mode: '0440'
+        validate: 'visudo -cf %s'
+      tags: [user, always]
+
+    - name: Enable lingering for roboclaw user
+      ansible.builtin.command: loginctl enable-linger {{ roboclaw_user }}
+      changed_when: false
+      tags: [user, always]
+
+    # Docker
+    - name: Install minimal essential packages for Docker
+      ansible.builtin.apt:
+        name:
+          - curl
+          - wget
+          - ca-certificates
+          - gnupg
+          - lsb-release
+        state: present
+      tags: [docker, always]
+
+    - name: Add Docker GPG key
+      ansible.builtin.shell:
+        cmd: |
+          install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+          chmod a+r /etc/apt/keyrings/docker.gpg
+        creates: /etc/apt/keyrings/docker.gpg
+      tags: docker
+
+    - name: Add Docker repository
+      ansible.builtin.shell:
+        cmd: |
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+        creates: /etc/apt/sources.list.d/docker.list
+      tags: docker
+
+    - name: Install Docker CE
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: true
+      tags: docker
+
+    - name: Add roboclaw user to docker group
+      ansible.builtin.user:
+        name: "{{ roboclaw_user }}"
+        groups: docker
+        append: true
+      tags: docker
+
+    - name: Start and enable Docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+      tags: docker
+
+    # Firewall
+    - name: Install UFW
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+      tags: firewall
+
+    - name: Set UFW default policies
+      community.general.ufw:
+        direction: "{{ item.direction }}"
+        policy: "{{ item.policy }}"
+      loop:
+        - { direction: 'incoming', policy: 'deny' }
+        - { direction: 'outgoing', policy: 'allow' }
+      tags: firewall
+
+    - name: Allow SSH on port 22
+      community.general.ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+      tags: firewall
+
+    - name: Enable UFW
+      community.general.ufw:
+        state: enabled
+      tags: firewall
+
+    # Node.js + pnpm
+    - name: Add NodeSource GPG key
+      ansible.builtin.shell:
+        cmd: |
+          curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg
+        creates: /usr/share/keyrings/nodesource.gpg
+      tags: nodejs
+
+    - name: Add NodeSource repository
+      ansible.builtin.shell:
+        cmd: |
+          echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_{{ nodejs_version }} nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+        creates: /etc/apt/sources.list.d/nodesource.list
+      tags: nodejs
+
+    - name: Install Node.js
+      ansible.builtin.apt:
+        name: nodejs
+        state: present
+        update_cache: true
+      tags: nodejs
+
+    - name: Install pnpm globally
+      ansible.builtin.shell:
+        cmd: npm install -g pnpm
+        creates: /usr/bin/pnpm
+      tags: nodejs
+
+    # ttyd
+    - name: Install ttyd for browser-based terminal
+      ansible.builtin.apt:
+        name: ttyd
+        state: present
+      tags: ttyd
+
+    # RoboClaw
+    - name: Create RoboClaw directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ roboclaw_user }}"
+        group: "{{ roboclaw_user }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: "{{ roboclaw_config_dir }}", mode: '0755' }
+        - { path: "{{ roboclaw_config_dir }}/sessions", mode: '0755' }
+        - { path: "{{ roboclaw_config_dir }}/credentials", mode: '0700' }
+        - { path: "{{ roboclaw_config_dir }}/data", mode: '0755' }
+        - { path: "{{ roboclaw_config_dir }}/logs", mode: '0755' }
+        - { path: "{{ roboclaw_home }}/.local/share/pnpm", mode: '0755' }
+        - { path: "{{ roboclaw_home }}/.local/bin", mode: '0755' }
+      tags: [roboclaw, always]
+
+    - name: Configure pnpm for roboclaw user
+      ansible.builtin.shell:
+        cmd: |
+          pnpm config set global-dir {{ roboclaw_home }}/.local/share/pnpm
+          pnpm config set global-bin-dir {{ roboclaw_home }}/.local/bin
+        executable: /bin/bash
+      become: true
+      become_user: "{{ roboclaw_user }}"
+      changed_when: true
+      tags: [roboclaw, always]
+
+    - name: Install OpenClaw globally from npm
+      ansible.builtin.shell:
+        cmd: pnpm install -g openclaw@latest
+        executable: /bin/bash
+      become: true
+      become_user: "{{ roboclaw_user }}"
+      environment:
+        HOME: "{{ roboclaw_home }}"
+        PNPM_HOME: "{{ roboclaw_home }}/.local/share/pnpm"
+        PATH: "{{ roboclaw_home }}/.local/bin:{{ ansible_env.PATH }}"
+      register: roboclaw_install
+      tags: roboclaw
+
+    - name: Configure minimal .bashrc for roboclaw user
+      ansible.builtin.blockinfile:
+        path: "{{ roboclaw_home }}/.bashrc"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - RoboClaw"
+        block: |
+          # pnpm configuration
+          export PNPM_HOME="{{ roboclaw_home }}/.local/share/pnpm"
+          export PATH="{{ roboclaw_home }}/.local/bin:$PNPM_HOME:$PATH"
+        create: true
+        owner: "{{ roboclaw_user }}"
+        group: "{{ roboclaw_user }}"
+        mode: '0644'
+      tags: [roboclaw, always]
+
+    # Gemini CLI
+    - name: Install Gemini CLI globally
+      ansible.builtin.shell:
+        cmd: pnpm install -g @google/gemini-cli
+        executable: /bin/bash
+      become: true
+      become_user: "{{ roboclaw_user }}"
+      environment:
+        HOME: "{{ roboclaw_home }}"
+        PNPM_HOME: "{{ roboclaw_home }}/.local/share/pnpm"
+        PATH: "{{ roboclaw_home }}/.local/bin:{{ ansible_env.PATH }}"
+      register: gemini_install
+      tags: gemini
+
+    # Verification
+    - name: Verify roboclaw installation
+      ansible.builtin.shell: |
+        export PATH="{{ roboclaw_home }}/.local/bin:$PATH"
+        openclaw --version
+      become: true
+      become_user: "{{ roboclaw_user }}"
+      register: roboclaw_version
+      changed_when: false
+      tags: [roboclaw, always]
+
+    - name: Verify gemini installation
+      ansible.builtin.shell: |
+        export PATH="{{ roboclaw_home }}/.local/bin:$PATH"
+        gemini --version
+      become: true
+      become_user: "{{ roboclaw_user }}"
+      register: gemini_version
+      changed_when: false
+      failed_when: false
+      tags: [gemini, always]
+
+    - name: Display reconfigure complete
+      ansible.builtin.debug:
+        msg: |
+          ✅ RECONFIGURATION COMPLETE ✅
+
+          RoboClaw: {{ roboclaw_version.stdout }}
+          Gemini CLI: {{ gemini_version.stdout | default('installed', true) }}
+
+          The instance has been successfully reconfigured.
+      tags: always

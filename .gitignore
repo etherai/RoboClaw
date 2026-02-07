@@ -1,0 +1,58 @@
+# Environment and secrets
+.env
+
+# SSH keys (auto-generated, should not be committed)
+hetzner_key
+hetzner_key.pub
+ssh-keys/
+
+# Generated files
+finland-instance-ip.txt
+available-server-types.txt
+
+# Python virtualenv
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Ansible
+*.retry
+.ansible/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+deployment-logs/
+
+# Node.js
+node_modules/
+package-lock.json
+
+# TypeScript build output (already covered by dist/ above)
+*.tsbuildinfo
+
+# Instance artifacts (local deployment metadata)
+instances/*.yml
